@@ -11,11 +11,13 @@ const Spiral2D = ({ count }) => {
 
   useEffect(() => {
     const canvas = canvasRef.current
-    if (!canvas) return
+    if (!canvas) {
+      return
+    }
 
     const ctx = canvas.getContext('2d')
     const rect = canvas.getBoundingClientRect()
-    
+
     // Set canvas size
     canvas.width = rect.width * window.devicePixelRatio
     canvas.height = rect.height * window.devicePixelRatio
@@ -111,7 +113,7 @@ const Spiral2D = ({ count }) => {
     for (let i = 0; i <= steps; i++) {
       const t = (i / steps) * maxT
       const coords = goldenSpiralCoordinates(t, maxT, scale / 20)
-      
+
       const x = centerX + coords.x
       const y = centerY + coords.y
 
@@ -128,14 +130,16 @@ const Spiral2D = ({ count }) => {
     // Draw spiral points with Fibonacci numbers
     const sequence = generateFibonacciSequence(Math.min(count, 10))
     sequence.forEach((fibNum, index) => {
-      if (index === 0) return
-      
+      if (index === 0) {
+        return
+      }
+
       const t = (index / sequence.length) * maxT
       const coords = goldenSpiralCoordinates(t, maxT, scale / 20)
-      
+
       const x = centerX + coords.x
       const y = centerY + coords.y
-      
+
       // Draw circle
       ctx.fillStyle = '#FFD700'
       ctx.strokeStyle = '#000'
@@ -159,10 +163,10 @@ const Spiral2D = ({ count }) => {
     sequence.slice(0, 8).forEach((num, index) => {
       const angle = (index / sequence.slice(0, 8).length) * 2 * Math.PI
       const radius = 100 + index * 20
-      
+
       const x = centerX + Math.cos(angle) * radius
       const y = centerY + Math.sin(angle) * radius
-      
+
       ctx.fillStyle = 'rgba(255, 215, 0, 0.8)'
       ctx.font = 'bold 14px Arial'
       ctx.textAlign = 'center'
@@ -186,7 +190,7 @@ const Spiral2D = ({ count }) => {
               />
               <span className="text-white">Rectangles d'or</span>
             </label>
-            
+
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
@@ -196,7 +200,7 @@ const Spiral2D = ({ count }) => {
               />
               <span className="text-white">Spirale dorée</span>
             </label>
-            
+
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
@@ -207,7 +211,7 @@ const Spiral2D = ({ count }) => {
               <span className="text-white">Grille</span>
             </label>
           </div>
-          
+
           <div className="flex items-center gap-2">
             <label className="text-white/80 text-sm">Vitesse:</label>
             <input
@@ -227,14 +231,14 @@ const Spiral2D = ({ count }) => {
       {/* Canvas */}
       <div className="fibonacci-card p-6">
         <h2 className="section-title mb-6">Visualisation de la Spirale Dorée</h2>
-        
+
         <div className="relative">
           <canvas
             ref={canvasRef}
             className="w-full h-96 border border-white/20 rounded-lg bg-gradient-to-br from-slate-800/50 to-purple-900/30"
             style={{ maxHeight: '500px' }}
           />
-          
+
           {/* Overlay info */}
           <div className="absolute top-4 right-4 bg-black/50 backdrop-blur-sm rounded-lg p-3 text-white text-sm">
             <div>Ratio d'or: <span className="text-fibonacci-gold font-mono">{GOLDEN_RATIO.toFixed(6)}</span></div>
@@ -252,7 +256,7 @@ const Spiral2D = ({ count }) => {
               <li>• Apparaît naturellement dans les coquillages et galaxies</li>
             </ul>
           </div>
-          
+
           <div className="space-y-3">
             <h3 className="text-lg font-semibold text-blue-400">Applications</h3>
             <ul className="space-y-2 text-white/80 text-sm">

@@ -34,7 +34,7 @@ const FibonacciCodingExplorer = () => {
     const fib = generateFibonacci(20)
     const representation = []
     let remaining = n
-    
+
     // Trouver le plus grand nombre Fibonacci <= n
     for (let i = fib.length - 1; i >= 0; i--) {
       if (fib[i] <= remaining) {
@@ -42,7 +42,7 @@ const FibonacciCodingExplorer = () => {
         remaining -= fib[i]
       }
     }
-    
+
     return representation.reverse()
   }
 
@@ -51,11 +51,11 @@ const FibonacciCodingExplorer = () => {
     const charCode = char.charCodeAt(0)
     const zeckendorf = findZeckendorfRepresentation(charCode)
     const fib = generateFibonacci(20)
-    
+
     // Créer la représentation binaire
     let binary = ''
     let fibIndex = 0
-    
+
     for (let i = 0; i < zeckendorf.length; i++) {
       // Trouver l'index dans la suite Fibonacci
       while (fib[fibIndex] !== zeckendorf[i]) {
@@ -65,10 +65,10 @@ const FibonacciCodingExplorer = () => {
       binary += '1'
       fibIndex++
     }
-    
+
     // Terminer avec '11' pour marquer la fin
     binary += '11'
-    
+
     return {
       character: char,
       charCode: charCode,
@@ -82,21 +82,23 @@ const FibonacciCodingExplorer = () => {
   const decodeCharacter = (binaryString) => {
     const fib = generateFibonacci(20)
     let value = 0
-    let i = 0
-    
+    const i = 0
+
     // Trouver la fin du caractère (marquée par '11')
-    let endIndex = binaryString.indexOf('11')
-    if (endIndex === -1) return null
-    
+    const endIndex = binaryString.indexOf('11')
+    if (endIndex === -1) {
+      return null
+    }
+
     const charBinary = binaryString.substring(0, endIndex)
-    
+
     // Convertir la représentation binaire en valeur
     for (let j = 0; j < charBinary.length; j++) {
       if (charBinary[j] === '1') {
         value += fib[j]
       }
     }
-    
+
     return {
       character: String.fromCharCode(value),
       charCode: value,
@@ -110,7 +112,7 @@ const FibonacciCodingExplorer = () => {
     setIsEncoding(true)
     const steps = []
     let encoded = ''
-    
+
     for (let i = 0; i < text.length; i++) {
       const char = text[i]
       const encodedChar = encodeCharacter(char)
@@ -120,16 +122,16 @@ const FibonacciCodingExplorer = () => {
       })
       encoded += encodedChar.binary
     }
-    
+
     setEncodingSteps(steps)
     setEncodedText(encoded)
     setIsEncoding(false)
-    
+
     // Calculer le ratio de compression
     const originalBits = text.length * 8 // ASCII = 8 bits par caractère
     const compressedBits = encoded.length
     setCompressionRatio(((originalBits - compressedBits) / originalBits) * 100)
-    
+
     return encoded
   }
 
@@ -138,20 +140,22 @@ const FibonacciCodingExplorer = () => {
     const steps = []
     let decoded = ''
     let position = 0
-    
+
     while (position < encoded.length) {
       const decodedChar = decodeCharacter(encoded.substring(position))
-      if (!decodedChar) break
-      
+      if (!decodedChar) {
+        break
+      }
+
       steps.push({
         position: decoded.length,
         ...decodedChar
       })
-      
+
       decoded += decodedChar.character
       position += decodedChar.length
     }
-    
+
     setDecodingSteps(steps)
     setDecodedText(decoded)
     return decoded
@@ -162,7 +166,7 @@ const FibonacciCodingExplorer = () => {
     if (inputText) {
       const encoded = encodeText(inputText)
       decodeText(encoded)
-      
+
       // Calculer la comparaison de compression
       const comparison = compareCompressionMethods(inputText, encoded)
       setCompressionComparison(comparison)
@@ -177,12 +181,12 @@ const FibonacciCodingExplorer = () => {
   // Comparer avec d'autres méthodes de compression
   const compareCompressionMethods = (text, fibonacciEncoded) => {
     const fibonacciBits = fibonacciEncoded.length
-    
+
     // Simulation d'autres méthodes
     const huffmanBits = Math.floor(text.length * 6.5) // Approximation
     const lzwBits = Math.floor(text.length * 5.8) // Approximation
     const originalBits = text.length * 8
-    
+
     return {
       original: originalBits,
       fibonacci: fibonacciBits,
@@ -202,7 +206,7 @@ const FibonacciCodingExplorer = () => {
           🔐 Fibonacci Coding Explorer
         </h2>
         <p className="text-white/70 text-lg max-w-3xl mx-auto">
-          Découvrez comment la suite de Fibonacci peut encoder efficacement l'information 
+          Découvrez comment la suite de Fibonacci peut encoder efficacement l'information
           grâce à la représentation de Zeckendorf. Un système de compression unique !
         </p>
       </div>
@@ -212,7 +216,7 @@ const FibonacciCodingExplorer = () => {
         <h3 className="text-xl font-semibold text-white mb-4">
           📝 Texte à encoder
         </h3>
-        
+
         <div className="space-y-4">
           <textarea
             value={inputText}
@@ -221,7 +225,7 @@ const FibonacciCodingExplorer = () => {
             rows={3}
             placeholder="Entrez votre texte ici..."
           />
-          
+
           <div className="text-sm text-white/60">
             Caractères: {inputText.length} | Bits originaux: {inputText.length * 8}
           </div>
@@ -240,7 +244,7 @@ const FibonacciCodingExplorer = () => {
             <h3 className="text-xl font-semibold text-white mb-4">
               🔄 Processus d'encodage
             </h3>
-            
+
             <div className="space-y-4">
               {encodingSteps.map((step, index) => (
                 <motion.div
@@ -284,7 +288,7 @@ const FibonacciCodingExplorer = () => {
         <h3 className="text-xl font-semibold text-white mb-4">
           📊 Résultats de l'encodage
         </h3>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Texte encodé */}
           <div className="bg-white/5 p-4 rounded-lg">
@@ -318,7 +322,7 @@ const FibonacciCodingExplorer = () => {
           <h4 className="text-lg font-semibold text-fibonacci-gold mb-3">
             📈 Statistiques de compression
           </h4>
-          
+
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
             <div>
               <span className="text-white/60">Bits originaux:</span>
@@ -349,7 +353,7 @@ const FibonacciCodingExplorer = () => {
         <h3 className="text-xl font-semibold text-white mb-4">
           ⚖️ Comparaison des méthodes de compression
         </h3>
-        
+
         <div className="space-y-4">
           {[
             { name: 'ASCII original', bits: compressionComparison.original, ratio: 0, color: 'text-gray-400' },
@@ -366,10 +370,10 @@ const FibonacciCodingExplorer = () => {
                   {method.bits} bits ({method.ratio.toFixed(1)}% compression)
                 </div>
               </div>
-              
+
               {/* Barre de progression */}
               <div className="mt-2 bg-white/10 rounded-full h-2">
-                <div 
+                <div
                   className={`h-2 rounded-full ${method.color.replace('text-', 'bg-')}`}
                   style={{ width: `${100 - method.ratio}%` }}
                 ></div>
@@ -384,7 +388,7 @@ const FibonacciCodingExplorer = () => {
         <h3 className="text-xl font-semibold text-white mb-4">
           🔢 Suite de Fibonacci utilisée
         </h3>
-        
+
         <div className="grid grid-cols-5 md:grid-cols-10 gap-2">
           {fibonacciSequence.map((fib, index) => (
             <motion.div
@@ -396,10 +400,10 @@ const FibonacciCodingExplorer = () => {
             </motion.div>
           ))}
         </div>
-        
+
         <div className="mt-4 text-white/60 text-sm">
-          Les nombres Fibonacci sont utilisés pour créer la représentation de Zeckendorf, 
-          où chaque entier positif peut être exprimé de manière unique comme somme de nombres 
+          Les nombres Fibonacci sont utilisés pour créer la représentation de Zeckendorf,
+          où chaque entier positif peut être exprimé de manière unique comme somme de nombres
           Fibonacci non consécutifs.
         </div>
       </div>
@@ -409,27 +413,27 @@ const FibonacciCodingExplorer = () => {
         <h3 className="text-xl font-semibold text-white mb-4">
           🧮 Théorie du Fibonacci Coding
         </h3>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <h4 className="text-lg font-semibold text-fibonacci-gold mb-2">
               📐 Représentation de Zeckendorf
             </h4>
             <p className="text-white/80 text-sm mb-4">
-              Tout entier positif peut être exprimé de manière unique comme somme de 
-              nombres Fibonacci non consécutifs. Cette propriété permet un encodage 
+              Tout entier positif peut être exprimé de manière unique comme somme de
+              nombres Fibonacci non consécutifs. Cette propriété permet un encodage
               sans préfixe optimal.
             </p>
-            
+
             <h4 className="text-lg font-semibold text-fibonacci-gold mb-2">
               🔗 Code sans préfixe
             </h4>
             <p className="text-white/80 text-sm">
-              Le Fibonacci Coding utilise '11' comme marqueur de fin, garantissant 
+              Le Fibonacci Coding utilise '11' comme marqueur de fin, garantissant
               qu'aucun code n'est préfixe d'un autre. Cela permet un décodage sans ambiguïté.
             </p>
           </div>
-          
+
           <div>
             <h4 className="text-lg font-semibold text-fibonacci-gold mb-2">
               ⚡ Avantages
@@ -440,7 +444,7 @@ const FibonacciCodingExplorer = () => {
               <li>• Pas de table de correspondance nécessaire</li>
               <li>• Compression efficace pour certains types de données</li>
             </ul>
-            
+
             <h4 className="text-lg font-semibold text-fibonacci-gold mb-2 mt-4">
               🎯 Applications
             </h4>
@@ -459,7 +463,7 @@ const FibonacciCodingExplorer = () => {
         <h3 className="text-xl font-semibold text-white mb-4">
           💡 Exemples pratiques
         </h3>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[
             { text: 'HELLO', description: 'Mot simple' },

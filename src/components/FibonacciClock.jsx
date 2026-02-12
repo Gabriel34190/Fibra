@@ -20,12 +20,14 @@ const FibonacciClock = () => {
 
   // Convertir un nombre en représentation Zeckendorf (somme de Fibonacci)
   const toZeckendorf = (n) => {
-    if (n === 0) return []
-    
+    if (n === 0) {
+      return []
+    }
+
     const fib = fibonacciValues
     const result = []
     let remaining = n
-    
+
     // Trouver la plus grande représentation possible
     for (let i = fib.length - 1; i >= 0; i--) {
       if (fib[i] <= remaining) {
@@ -33,7 +35,7 @@ const FibonacciClock = () => {
         remaining -= fib[i]
       }
     }
-    
+
     return result.reverse()
   }
 
@@ -67,16 +69,16 @@ const FibonacciClock = () => {
   // Obtenir la couleur d'une plaque
   const getPlateColor = (value, type) => {
     const isActive = activePlates[type].includes(value)
-    
+
     if (isActive) {
       switch (type) {
-        case 'hours': return 'bg-red-500'
-        case 'minutes': return 'bg-green-500'
-        case 'seconds': return 'bg-blue-500'
-        default: return 'bg-gray-500'
+      case 'hours': return 'bg-red-500'
+      case 'minutes': return 'bg-green-500'
+      case 'seconds': return 'bg-blue-500'
+      default: return 'bg-gray-500'
       }
     }
-    
+
     return 'bg-gray-700'
   }
 
@@ -91,10 +93,10 @@ const FibonacciClock = () => {
     const hours = is24Hour ? currentTime.getHours() : currentTime.getHours() % 12 || 12
     const minutes = currentTime.getMinutes()
     const seconds = currentTime.getSeconds()
-    
+
     const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
     const secondsString = showSeconds ? `:${seconds.toString().padStart(2, '0')}` : ''
-    
+
     return timeString + secondsString
   }
 
@@ -108,9 +110,9 @@ const FibonacciClock = () => {
     const hours = is24Hour ? currentTime.getHours() : currentTime.getHours() % 12 || 12
     const minutes = currentTime.getMinutes()
     const seconds = currentTime.getSeconds()
-    
-    return calculateSum('hours') === hours && 
-           calculateSum('minutes') === minutes && 
+
+    return calculateSum('hours') === hours &&
+           calculateSum('minutes') === minutes &&
            (!showSeconds || calculateSum('seconds') === seconds)
   }
 
@@ -122,7 +124,7 @@ const FibonacciClock = () => {
           ⏰ Fibonacci Clock
         </h2>
         <p className="text-white/70 text-lg max-w-3xl mx-auto">
-          Découvrez une nouvelle façon de lire l'heure ! Cette horloge utilise la représentation 
+          Découvrez une nouvelle façon de lire l'heure ! Cette horloge utilise la représentation
           de Zeckendorf pour afficher le temps avec des plaques de valeurs Fibonacci.
         </p>
       </div>
@@ -194,7 +196,7 @@ const FibonacciClock = () => {
         <h3 className="text-xl font-semibold text-white mb-4">
           ⏰ Horloge Fibonacci
         </h3>
-        
+
         <div className="space-y-8">
           {/* Plaques Fibonacci */}
           <div className="bg-black/20 p-6 rounded-lg">
@@ -215,7 +217,7 @@ const FibonacciClock = () => {
                 </motion.div>
               ))}
             </div>
-            
+
             {/* Légende */}
             <div className="mt-4 flex justify-center space-x-6">
               <div className="flex items-center space-x-2">
@@ -289,7 +291,7 @@ const FibonacciClock = () => {
             <h3 className="text-xl font-semibold text-white mb-4">
               🕐 Heure traditionnelle
             </h3>
-            
+
             <div className="text-center">
               <div className="text-6xl font-bold text-fibonacci-gold mb-4">
                 {formatTraditionalTime()}
@@ -312,17 +314,17 @@ const FibonacciClock = () => {
         <h3 className="text-xl font-semibold text-white mb-4">
           🧮 Comment lire l'heure Fibonacci ?
         </h3>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <h4 className="text-lg font-semibold text-fibonacci-gold mb-2">
               📐 Représentation de Zeckendorf
             </h4>
             <p className="text-white/80 text-sm mb-4">
-              Chaque nombre peut être exprimé de manière unique comme somme de nombres 
+              Chaque nombre peut être exprimé de manière unique comme somme de nombres
               Fibonacci non consécutifs. Par exemple : 7 = 5 + 2, 12 = 8 + 3 + 1
             </p>
-            
+
             <h4 className="text-lg font-semibold text-fibonacci-gold mb-2">
               🎨 Code couleur
             </h4>
@@ -332,7 +334,7 @@ const FibonacciClock = () => {
               <li>• <span className="text-blue-400">Bleu</span> : Secondes</li>
             </ul>
           </div>
-          
+
           <div>
             <h4 className="text-lg font-semibold text-fibonacci-gold mb-2">
               🔢 Exemple pratique
@@ -345,7 +347,7 @@ const FibonacciClock = () => {
                 Les plaques 13, 1, 34 s'allument !
               </div>
             </div>
-            
+
             <h4 className="text-lg font-semibold text-fibonacci-gold mb-2 mt-4">
               ⚡ Avantages
             </h4>
@@ -364,14 +366,14 @@ const FibonacciClock = () => {
         <h3 className="text-xl font-semibold text-white mb-4">
           🔢 Suite de Fibonacci utilisée
         </h3>
-        
+
         <div className="grid grid-cols-5 md:grid-cols-10 gap-2">
           {fibonacciValues.map((value, index) => (
             <motion.div
               key={value}
               className={`p-3 rounded text-center font-semibold transition-colors ${
-                activePlates.hours.includes(value) || 
-                activePlates.minutes.includes(value) || 
+                activePlates.hours.includes(value) ||
+                activePlates.minutes.includes(value) ||
                 activePlates.seconds.includes(value)
                   ? 'bg-fibonacci-gold text-black'
                   : 'bg-white/10 text-white'
@@ -383,9 +385,9 @@ const FibonacciClock = () => {
             </motion.div>
           ))}
         </div>
-        
+
         <div className="mt-4 text-white/60 text-sm">
-          Cette suite permet de représenter n'importe quel nombre de manière unique 
+          Cette suite permet de représenter n'importe quel nombre de manière unique
           grâce au théorème de Zeckendorf.
         </div>
       </div>
@@ -395,36 +397,36 @@ const FibonacciClock = () => {
         <h3 className="text-xl font-semibold text-white mb-4">
           💡 Applications du Fibonacci Clock
         </h3>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[
-            { 
-              title: 'Éducation mathématique', 
+            {
+              title: 'Éducation mathématique',
               description: 'Apprendre les suites et représentations numériques',
               icon: '🎓'
             },
-            { 
-              title: 'Design innovant', 
+            {
+              title: 'Design innovant',
               description: 'Horloges artistiques et conceptuelles',
               icon: '🎨'
             },
-            { 
-              title: 'Accessibilité', 
+            {
+              title: 'Accessibilité',
               description: 'Alternative pour personnes avec troubles visuels',
               icon: '♿'
             },
-            { 
-              title: 'Gamification', 
+            {
+              title: 'Gamification',
               description: 'Transformer la lecture du temps en jeu',
               icon: '🎮'
             },
-            { 
-              title: 'Art numérique', 
+            {
+              title: 'Art numérique',
               description: 'Installations artistiques interactives',
               icon: '🖼️'
             },
-            { 
-              title: 'Recherche cognitive', 
+            {
+              title: 'Recherche cognitive',
               description: 'Études sur la perception du temps',
               icon: '🧠'
             }
@@ -447,12 +449,12 @@ const FibonacciClock = () => {
         <h3 className="text-xl font-semibold text-white mb-4">
           🎯 Défi de lecture
         </h3>
-        
+
         <div className="text-center">
           <p className="text-white/80 mb-4">
             Pouvez-vous lire l'heure Fibonacci sans regarder l'affichage traditionnel ?
           </p>
-          
+
           <div className="bg-white/5 p-4 rounded-lg inline-block">
             <div className="text-2xl font-bold text-fibonacci-gold mb-2">
               {calculateSum('hours')}:{calculateSum('minutes').toString().padStart(2, '0')}

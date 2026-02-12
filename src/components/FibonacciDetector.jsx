@@ -33,7 +33,7 @@ const FibonacciDetector = () => {
       className="fibonacci-card p-8"
     >
       <h2 className="text-3xl font-bold text-white mb-8">Détecteur de Patterns Fibonacci</h2>
-      
+
       <div className="space-y-6">
         <div className="bg-white/5 p-6 rounded-lg border border-white/10">
           <label className="block text-white/80 mb-4">

@@ -25,13 +25,13 @@ const FibonacciSearchVisualizer = () => {
   const binarySearch = (arr, target) => {
     let left = 0
     let right = arr.length - 1
-    let steps = []
+    const steps = []
     let comparisons = 0
 
     while (left <= right) {
       const mid = Math.floor((left + right) / 2)
       comparisons++
-      
+
       steps.push({
         type: 'binary',
         left,
@@ -58,7 +58,7 @@ const FibonacciSearchVisualizer = () => {
   const fibonacciSearch = (arr, target) => {
     const n = arr.length
     const fib = generateFibonacci(20) // Générer assez de nombres Fibonacci
-    
+
     // Trouver le plus petit nombre Fibonacci >= n
     let fibM = 0
     while (fib[fibM] < n) {
@@ -66,13 +66,13 @@ const FibonacciSearchVisualizer = () => {
     }
 
     let offset = -1
-    let steps = []
+    const steps = []
     let comparisons = 0
 
     while (fibM > 1) {
       const i = Math.min(offset + fib[fibM - 2], n - 1)
       comparisons++
-      
+
       steps.push({
         type: 'fibonacci',
         left: offset + 1,
@@ -124,15 +124,15 @@ const FibonacciSearchVisualizer = () => {
   }
 
   // Exécuter la recherche
-  const runSearch = async () => {
+  const runSearch = async() => {
     setIsRunning(true)
     setCurrentStep(0)
     setFound(false)
-    
+
     const arr = generateArray(arraySize)
     const binaryResult = binarySearch(arr, target)
     const fibonacciResult = fibonacciSearch(arr, target)
-    
+
     setComparisons({
       binary: binaryResult.comparisons,
       fibonacci: fibonacciResult.comparisons
@@ -154,34 +154,36 @@ const FibonacciSearchVisualizer = () => {
   // Dessiner le tableau sur le canvas
   const drawArray = () => {
     const canvas = canvasRef.current
-    if (!canvas) return
+    if (!canvas) {
+      return
+    }
 
     const ctx = canvas.getContext('2d')
     const arr = generateArray(arraySize)
-    
+
     canvas.width = canvas.offsetWidth
     canvas.height = 200
-    
+
     ctx.clearRect(0, 0, canvas.width, canvas.height)
-    
+
     const barWidth = canvas.width / arr.length
     const maxValue = Math.max(...arr)
-    
+
     arr.forEach((value, index) => {
       const barHeight = (value / maxValue) * (canvas.height - 40)
       const x = index * barWidth
       const y = canvas.height - barHeight - 20
-      
+
       // Couleur de base
       ctx.fillStyle = '#374151'
       ctx.fillRect(x, barWidth * 0.1, barWidth * 0.8, barHeight)
-      
+
       // Mettre en évidence la valeur cible
       if (value === target) {
         ctx.fillStyle = '#fbbf24'
         ctx.fillRect(x, barWidth * 0.1, barWidth * 0.8, barHeight)
       }
-      
+
       // Dessiner la valeur
       ctx.fillStyle = '#ffffff'
       ctx.font = '10px Arial'
@@ -192,34 +194,38 @@ const FibonacciSearchVisualizer = () => {
 
   // Dessiner les zones de recherche
   const drawSearchZones = () => {
-    if (currentStep >= steps.length) return
-    
+    if (currentStep >= steps.length) {
+      return
+    }
+
     const canvas = canvasRef.current
-    if (!canvas) return
-    
+    if (!canvas) {
+      return
+    }
+
     const ctx = canvas.getContext('2d')
     const step = steps[currentStep]
     const arr = generateArray(arraySize)
     const barWidth = canvas.width / arr.length
-    
+
     // Dessiner la zone de recherche
     const leftX = step.left * barWidth
     const rightX = (step.right + 1) * barWidth
     const zoneHeight = canvas.height - 20
-    
+
     ctx.strokeStyle = searchType === 'binary' ? '#3b82f6' : '#f59e0b'
     ctx.lineWidth = 3
     ctx.setLineDash([5, 5])
     ctx.strokeRect(leftX, 10, rightX - leftX, zoneHeight)
     ctx.setLineDash([])
-    
+
     // Dessiner le point médian
     const midX = step.mid * barWidth + barWidth / 2
     ctx.fillStyle = searchType === 'binary' ? '#3b82f6' : '#f59e0b'
     ctx.beginPath()
     ctx.arc(midX, 30, 8, 0, 2 * Math.PI)
     ctx.fill()
-    
+
     // Ajouter des labels
     ctx.fillStyle = '#ffffff'
     ctx.font = '12px Arial'
@@ -248,7 +254,7 @@ const FibonacciSearchVisualizer = () => {
           ⚙️ Fibonacci Search Visualizer
         </h2>
         <p className="text-white/70 text-lg max-w-3xl mx-auto">
-          Découvrez pourquoi la recherche Fibonacci est plus efficace que la recherche binaire 
+          Découvrez pourquoi la recherche Fibonacci est plus efficace que la recherche binaire
           classique. La suite de Fibonacci optimise naturellement les intervalles de recherche !
         </p>
       </div>
@@ -327,7 +333,7 @@ const FibonacciSearchVisualizer = () => {
         <h3 className="text-xl font-semibold text-white mb-4">
           📊 Visualisation de la recherche
         </h3>
-        
+
         <div className="space-y-6">
           {/* Canvas */}
           <div className="bg-black/20 p-4 rounded-lg">
@@ -367,7 +373,7 @@ const FibonacciSearchVisualizer = () => {
             <h3 className="text-xl font-semibold text-white mb-4">
               📈 Résultats de l'analyse
             </h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Comparaison des performances */}
               <div className="bg-white/5 p-4 rounded-lg">
@@ -407,7 +413,7 @@ const FibonacciSearchVisualizer = () => {
                     <strong>Recherche Fibonacci:</strong> O(logφ n) où φ = 1.618...
                   </div>
                   <div className="text-white/60 text-xs mt-2">
-                    φ étant le nombre d'or, la recherche Fibonacci est théoriquement 
+                    φ étant le nombre d'or, la recherche Fibonacci est théoriquement
                     plus efficace pour de très grands tableaux.
                   </div>
                 </div>
@@ -421,7 +427,7 @@ const FibonacciSearchVisualizer = () => {
                   {found ? '✅ Trouvé !' : '❌ Non trouvé'}
                 </div>
                 <div className="text-white/80">
-                  {found 
+                  {found
                     ? `La valeur ${target} a été trouvée en ${steps.length} étapes`
                     : `La valeur ${target} n'existe pas dans le tableau`
                   }
@@ -437,26 +443,26 @@ const FibonacciSearchVisualizer = () => {
         <h3 className="text-xl font-semibold text-white mb-4">
           🔬 Pourquoi Fibonacci est-il plus efficace ?
         </h3>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <h4 className="text-lg font-semibold text-fibonacci-gold mb-2">
               📐 Optimisation des intervalles
             </h4>
             <p className="text-white/80 text-sm mb-4">
-              La recherche Fibonacci divise l'intervalle selon les proportions dorées, 
+              La recherche Fibonacci divise l'intervalle selon les proportions dorées,
               créant des divisions plus naturelles et équilibrées que la division binaire classique.
             </p>
-            
+
             <h4 className="text-lg font-semibold text-fibonacci-gold mb-2">
               ⚖️ Équilibre optimal
             </h4>
             <p className="text-white/80 text-sm">
-              Le ratio d'or (φ ≈ 1.618) minimise le nombre moyen de comparaisons 
+              Le ratio d'or (φ ≈ 1.618) minimise le nombre moyen de comparaisons
               nécessaires, surtout pour les grandes structures de données.
             </p>
           </div>
-          
+
           <div>
             <h4 className="text-lg font-semibold text-fibonacci-gold mb-2">
               🎯 Applications pratiques
@@ -467,12 +473,12 @@ const FibonacciSearchVisualizer = () => {
               <li>• Algorithmes de minimisation</li>
               <li>• Optimisation de requêtes de base de données</li>
             </ul>
-            
+
             <h4 className="text-lg font-semibold text-fibonacci-gold mb-2 mt-4">
               🧠 Avantage cognitif
             </h4>
             <p className="text-white/80 text-sm">
-              Les proportions dorées sont plus "naturelles" pour notre perception, 
+              Les proportions dorées sont plus "naturelles" pour notre perception,
               rendant l'algorithme plus intuitif à comprendre et déboguer.
             </p>
           </div>
@@ -491,7 +497,7 @@ const FibonacciSearchVisualizer = () => {
             <h3 className="text-xl font-semibold text-white mb-4">
               🔄 Étape {currentStep + 1} sur {steps.length}
             </h3>
-            
+
             {currentStep < steps.length && (
               <div className="bg-white/5 p-4 rounded-lg">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
@@ -512,7 +518,7 @@ const FibonacciSearchVisualizer = () => {
                     <div className="text-white font-semibold">{steps[currentStep]?.comparisons}</div>
                   </div>
                 </div>
-                
+
                 {searchType === 'fibonacci' && (
                   <div className="mt-4 text-sm">
                     <span className="text-white/60">Nombre Fibonacci utilisé:</span>

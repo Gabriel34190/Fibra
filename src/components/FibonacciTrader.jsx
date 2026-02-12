@@ -24,16 +24,16 @@ const FibonacciTrader = () => {
     const data = []
     let price = 100
     let trend = 1
-    
+
     for (let i = 0; i < length; i++) {
       // Ajouter de la volatilité et des tendances
       const volatility = (Math.random() - 0.5) * 2
       const trendChange = Math.random() < 0.1 ? (Math.random() - 0.5) * 0.5 : 0
       trend += trendChange
-      
+
       price += volatility + trend * 0.1
       price = Math.max(50, Math.min(200, price)) // Limiter entre 50 et 200
-      
+
       data.push({
         time: i,
         price: price,
@@ -42,20 +42,22 @@ const FibonacciTrader = () => {
         low: price - Math.random() * 2
       })
     }
-    
+
     return data
   }
 
   // Calculer les niveaux Fibonacci
   const calculateFibonacciLevels = (data) => {
-    if (data.length < 2) return []
-    
+    if (data.length < 2) {
+      return []
+    }
+
     const high = Math.max(...data.map(d => d.high))
     const low = Math.min(...data.map(d => d.low))
     const range = high - low
-    
+
     const levels = []
-    
+
     // Retracements
     if (showRetracements) {
       RETRACEMENT_LEVELS.forEach(level => {
@@ -68,7 +70,7 @@ const FibonacciTrader = () => {
         })
       })
     }
-    
+
     // Extensions
     if (showExtensions) {
       EXTENSION_LEVELS.forEach(level => {
@@ -81,20 +83,22 @@ const FibonacciTrader = () => {
         })
       })
     }
-    
+
     return levels
   }
 
   // Générer des signaux de trading
   const generateTradingSignals = (data, levels) => {
     const signals = []
-    
+
     data.forEach((point, index) => {
-      if (index < 5) return // Ignorer les premiers points
-      
+      if (index < 5) {
+        return
+      } // Ignorer les premiers points
+
       levels.forEach(level => {
         const tolerance = 0.5 // Tolérance de 0.5%
-        
+
         // Vérifier si le prix touche un niveau Fibonacci
         if (Math.abs(point.price - level.price) / level.price < tolerance / 100) {
           const signal = {
@@ -104,52 +108,62 @@ const FibonacciTrader = () => {
             type: level.type === 'retracement' ? 'support' : 'resistance',
             strength: calculateSignalStrength(point, data.slice(Math.max(0, index - 10), index))
           }
-          
+
           signals.push(signal)
         }
       })
     })
-    
+
     return signals
   }
 
   // Calculer la force du signal
   const calculateSignalStrength = (point, recentData) => {
-    if (recentData.length < 3) return 'weak'
-    
+    if (recentData.length < 3) {
+      return 'weak'
+    }
+
     const avgVolume = recentData.reduce((sum, d) => sum + d.volume, 0) / recentData.length
     const volumeRatio = point.volume / avgVolume
-    
-    if (volumeRatio > 1.5) return 'strong'
-    if (volumeRatio > 1.2) return 'medium'
+
+    if (volumeRatio > 1.5) {
+      return 'strong'
+    }
+    if (volumeRatio > 1.2) {
+      return 'medium'
+    }
     return 'weak'
   }
 
   // Dessiner le graphique
   const drawChart = () => {
     const canvas = canvasRef.current
-    if (!canvas) return
-    
+    if (!canvas) {
+      return
+    }
+
     const ctx = canvas.getContext('2d')
     const { width, height } = canvas
-    
+
     ctx.clearRect(0, 0, width, height)
-    
-    if (priceData.length === 0) return
-    
+
+    if (priceData.length === 0) {
+      return
+    }
+
     // Calculer les dimensions du graphique
     const padding = 40
     const chartWidth = width - 2 * padding
     const chartHeight = height - 2 * padding
-    
+
     const minPrice = Math.min(...priceData.map(d => d.low))
     const maxPrice = Math.max(...priceData.map(d => d.high))
     const priceRange = maxPrice - minPrice
-    
+
     // Dessiner les niveaux Fibonacci
     fibonacciLevels.forEach(level => {
       const y = padding + chartHeight - ((level.price - minPrice) / priceRange) * chartHeight
-      
+
       ctx.strokeStyle = level.type === 'retracement' ? '#fbbf24' : '#ef4444'
       ctx.lineWidth = 1
       ctx.setLineDash([5, 5])
@@ -158,42 +172,42 @@ const FibonacciTrader = () => {
       ctx.lineTo(width - padding, y)
       ctx.stroke()
       ctx.setLineDash([])
-      
+
       // Label
       ctx.fillStyle = level.type === 'retracement' ? '#fbbf24' : '#ef4444'
       ctx.font = '12px Arial'
       ctx.fillText(level.label, width - padding - 50, y - 5)
     })
-    
+
     // Dessiner la ligne de prix
     ctx.strokeStyle = '#3b82f6'
     ctx.lineWidth = 2
     ctx.beginPath()
-    
+
     priceData.forEach((point, index) => {
       const x = padding + (index / (priceData.length - 1)) * chartWidth
       const y = padding + chartHeight - ((point.price - minPrice) / priceRange) * chartHeight
-      
+
       if (index === 0) {
         ctx.moveTo(x, y)
       } else {
         ctx.lineTo(x, y)
       }
     })
-    
+
     ctx.stroke()
-    
+
     // Dessiner les signaux
     tradingSignals.forEach(signal => {
       const x = padding + (signal.time / (priceData.length - 1)) * chartWidth
       const y = padding + chartHeight - ((signal.price - minPrice) / priceRange) * chartHeight
-      
+
       ctx.fillStyle = signal.type === 'support' ? '#10b981' : '#ef4444'
       ctx.beginPath()
       ctx.arc(x, y, 4, 0, 2 * Math.PI)
       ctx.fill()
     })
-    
+
     // Axes
     ctx.strokeStyle = '#6b7280'
     ctx.lineWidth = 1
@@ -202,7 +216,7 @@ const FibonacciTrader = () => {
     ctx.lineTo(padding, height - padding)
     ctx.lineTo(width - padding, height - padding)
     ctx.stroke()
-    
+
     // Labels des axes
     ctx.fillStyle = '#9ca3af'
     ctx.font = '12px Arial'
@@ -213,14 +227,16 @@ const FibonacciTrader = () => {
 
   // Simulation en temps réel
   const simulateTrading = () => {
-    if (!isSimulating) return
-    
+    if (!isSimulating) {
+      return
+    }
+
     // Ajouter un nouveau point de prix
     const lastPrice = priceData[priceData.length - 1]?.price || 100
     const volatility = (Math.random() - 0.5) * 4
     const trendFactor = trend === 'bullish' ? 0.1 : -0.1
     const newPrice = lastPrice + volatility + trendFactor
-    
+
     const newPoint = {
       time: priceData.length,
       price: newPrice,
@@ -228,10 +244,10 @@ const FibonacciTrader = () => {
       high: newPrice + Math.random() * 2,
       low: newPrice - Math.random() * 2
     }
-    
+
     setPriceData(prev => [...prev.slice(-99), newPoint]) // Garder seulement les 100 derniers points
     setCurrentPrice(newPrice)
-    
+
     // Programmer la prochaine mise à jour
     setTimeout(() => {
       simulateTrading()
@@ -247,7 +263,7 @@ const FibonacciTrader = () => {
   useEffect(() => {
     const levels = calculateFibonacciLevels(priceData)
     setFibonacciLevels(levels)
-    
+
     const signals = generateTradingSignals(priceData, levels)
     setTradingSignals(signals)
   }, [priceData, showRetracements, showExtensions])
@@ -271,10 +287,10 @@ const FibonacciTrader = () => {
         canvas.height = canvas.offsetHeight
         drawChart()
       }
-      
+
       resizeCanvas()
       window.addEventListener('resize', resizeCanvas)
-      
+
       return () => window.removeEventListener('resize', resizeCanvas)
     }
   }, [])
@@ -287,7 +303,7 @@ const FibonacciTrader = () => {
           📈 Fibonacci Trader
         </h2>
         <p className="text-white/70 text-lg max-w-3xl mx-auto">
-          Découvrez comment les traders utilisent les retracements et extensions Fibonacci 
+          Découvrez comment les traders utilisent les retracements et extensions Fibonacci
           pour identifier les niveaux de support et résistance dans les marchés financiers.
         </p>
       </div>
@@ -303,8 +319,8 @@ const FibonacciTrader = () => {
             <motion.button
               onClick={() => setIsSimulating(!isSimulating)}
               className={`w-full px-4 py-3 rounded-lg font-semibold transition-colors ${
-                isSimulating 
-                  ? 'bg-red-500 hover:bg-red-600 text-white' 
+                isSimulating
+                  ? 'bg-red-500 hover:bg-red-600 text-white'
                   : 'bg-fibonacci-gold hover:bg-yellow-400 text-black'
               }`}
               whileHover={{ scale: 1.05 }}
@@ -407,14 +423,14 @@ const FibonacciTrader = () => {
         <h3 className="text-xl font-semibold text-white mb-4">
           📊 Graphique de prix avec niveaux Fibonacci
         </h3>
-        
+
         <div className="bg-black/20 p-4 rounded-lg">
           <canvas
             ref={canvasRef}
             className="w-full h-96 border border-white/20 rounded"
           />
         </div>
-        
+
         {/* Légende */}
         <div className="mt-4 flex justify-center space-x-6">
           <div className="flex items-center space-x-2">
@@ -445,7 +461,7 @@ const FibonacciTrader = () => {
         <h3 className="text-xl font-semibold text-white mb-4">
           🎯 Signaux de trading détectés
         </h3>
-        
+
         <div className="space-y-4">
           {tradingSignals.slice(-10).map((signal, index) => (
             <motion.div
@@ -454,8 +470,8 @@ const FibonacciTrader = () => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.1 }}
               className={`p-4 rounded-lg border-l-4 ${
-                signal.type === 'support' 
-                  ? 'bg-green-500/10 border-green-500' 
+                signal.type === 'support'
+                  ? 'bg-green-500/10 border-green-500'
                   : 'bg-red-500/10 border-red-500'
               }`}
             >
@@ -481,7 +497,7 @@ const FibonacciTrader = () => {
               </div>
             </motion.div>
           ))}
-          
+
           {tradingSignals.length === 0 && (
             <div className="text-center text-white/60 py-8">
               Aucun signal détecté pour le moment...
@@ -495,7 +511,7 @@ const FibonacciTrader = () => {
         <h3 className="text-xl font-semibold text-white mb-4">
           📊 Statistiques de trading
         </h3>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="bg-white/5 p-4 rounded-lg">
             <h4 className="text-lg font-semibold text-fibonacci-gold mb-2">
@@ -505,7 +521,7 @@ const FibonacciTrader = () => {
               {tradingSignals.length}
             </div>
           </div>
-          
+
           <div className="bg-white/5 p-4 rounded-lg">
             <h4 className="text-lg font-semibold text-fibonacci-gold mb-2">
               🟢 Supports
@@ -514,7 +530,7 @@ const FibonacciTrader = () => {
               {tradingSignals.filter(s => s.type === 'support').length}
             </div>
           </div>
-          
+
           <div className="bg-white/5 p-4 rounded-lg">
             <h4 className="text-lg font-semibold text-fibonacci-gold mb-2">
               🔴 Résistances
@@ -523,7 +539,7 @@ const FibonacciTrader = () => {
               {tradingSignals.filter(s => s.type === 'resistance').length}
             </div>
           </div>
-          
+
           <div className="bg-white/5 p-4 rounded-lg">
             <h4 className="text-lg font-semibold text-fibonacci-gold mb-2">
               ⚡ Signaux forts
@@ -540,7 +556,7 @@ const FibonacciTrader = () => {
         <h3 className="text-xl font-semibold text-white mb-4">
           🧮 Théorie des retracements Fibonacci
         </h3>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <h4 className="text-lg font-semibold text-fibonacci-gold mb-2">
@@ -553,7 +569,7 @@ const FibonacciTrader = () => {
               <li>• <strong>61.8%</strong> : Retracement doré (le plus important)</li>
               <li>• <strong>78.6%</strong> : Retracement profond</li>
             </ul>
-            
+
             <h4 className="text-lg font-semibold text-fibonacci-gold mb-2 mt-4">
               🎯 Applications pratiques
             </h4>
@@ -564,7 +580,7 @@ const FibonacciTrader = () => {
               <li>• Gérer le risque</li>
             </ul>
           </div>
-          
+
           <div>
             <h4 className="text-lg font-semibold text-fibonacci-gold mb-2">
               ⚠️ Limitations
@@ -575,7 +591,7 @@ const FibonacciTrader = () => {
               <li>• Peuvent être invalidés par des nouvelles fondamentales</li>
               <li>• Fonctionnent mieux sur les marchés en tendance</li>
             </ul>
-            
+
             <h4 className="text-lg font-semibold text-fibonacci-gold mb-2 mt-4">
               💡 Conseils d'utilisation
             </h4>
@@ -594,7 +610,7 @@ const FibonacciTrader = () => {
         <h3 className="text-xl font-semibold text-white mb-4">
           🎯 Stratégies de trading Fibonacci
         </h3>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[
             {
@@ -638,8 +654,8 @@ const FibonacciTrader = () => {
           ⚠️ Avertissement important
         </h3>
         <p className="text-white/80 text-sm">
-          Cette simulation est uniquement à des fins éducatives. Le trading réel comporte des risques 
-          financiers importants. Les niveaux Fibonacci ne garantissent pas le succès et doivent être 
+          Cette simulation est uniquement à des fins éducatives. Le trading réel comporte des risques
+          financiers importants. Les niveaux Fibonacci ne garantissent pas le succès et doivent être
           utilisés en combinaison avec d'autres analyses techniques et fondamentales.
         </p>
       </div>

@@ -3,14 +3,14 @@ import { motion } from 'framer-motion'
 
 const Header = () => {
   return (
-    <motion.header 
+    <motion.header
       className="text-center py-12 px-4"
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8 }}
     >
       <div className="container mx-auto">
-        <motion.h1 
+        <motion.h1
           className="text-6xl md:text-8xl font-bold mb-4"
           initial={{ scale: 0.8 }}
           animate={{ scale: 1 }}
@@ -20,7 +20,7 @@ const Header = () => {
             Fibra
           </span>
         </motion.h1>
-        
+
         <motion.div
           className="text-xl md:text-2xl text-white/80 mb-8"
           initial={{ opacity: 0 }}

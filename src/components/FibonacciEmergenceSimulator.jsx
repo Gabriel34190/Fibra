@@ -19,7 +19,9 @@ const FibonacciEmergenceSimulator = () => {
   }, [])
 
   useEffect(() => {
-    if (!isRunning) return
+    if (!isRunning) {
+      return
+    }
 
     const interval = setInterval(() => {
       setGeneration(prev => prev + 1)
@@ -41,7 +43,7 @@ const FibonacciEmergenceSimulator = () => {
       className="fibonacci-card p-8"
     >
       <h2 className="text-3xl font-bold text-white mb-8">Simulateur d'Émergence</h2>
-      
+
       <div className="space-y-6">
         {/* Contrôles */}
         <div className="bg-white/5 p-6 rounded-lg border border-white/10 space-y-4">

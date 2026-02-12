@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import * as Tone from 'tone'
-import { 
-  generateFibonacciMelody, 
-  generateFibonacciChords, 
+import {
+  generateFibonacciMelody,
+  generateFibonacciChords,
   createFibonacciComposition,
-  generateFibonacciScale 
+  generateFibonacciScale
 } from '../utils/fibonacciMusic.js'
 
 const MusicGenerator = ({ count }) => {
@@ -16,16 +16,16 @@ const MusicGenerator = ({ count }) => {
   const [instrument, setInstrument] = useState('piano')
   const [currentNote, setCurrentNote] = useState(null)
   const [composition, setComposition] = useState(null)
-  
+
   const synthRef = useRef(null)
   const sequenceRef = useRef(null)
 
   // Initialize Tone.js and synthesizer
   useEffect(() => {
-    const initAudio = async () => {
+    const initAudio = async() => {
       if (!isLoaded) {
         await Tone.start()
-        
+
         synthRef.current = new Tone.PolySynth(Tone.Synth, {
           oscillator: {
             type: 'triangle'
@@ -69,11 +69,13 @@ const MusicGenerator = ({ count }) => {
     setComposition(newComposition)
   }
 
-  const playComposition = async () => {
-    if (!isLoaded || !composition || isPlaying) return
+  const playComposition = async() => {
+    if (!isLoaded || !composition || isPlaying) {
+      return
+    }
 
     setIsPlaying(true)
-    
+
     try {
       // Set tempo
       Tone.Transport.bpm.value = tempo
@@ -87,12 +89,12 @@ const MusicGenerator = ({ count }) => {
       const melodyPart = new Tone.Part((time, note) => {
         setCurrentNote(`${note.note}${note.octave}`)
         synthRef.current.triggerAttackRelease(
-          `${note.note}${note.octave}`, 
-          note.duration, 
+          `${note.note}${note.octave}`,
+          note.duration,
           time,
           note.velocity
         )
-        
+
         // Clear current note display after duration
         setTimeout(() => setCurrentNote(null), note.duration * 1000)
       }, composition.melody.map((note, index) => ({
@@ -104,8 +106,8 @@ const MusicGenerator = ({ count }) => {
       const chordPart = new Tone.Part((time, chord) => {
         chord.notes.forEach(note => {
           synthRef.current.triggerAttackRelease(
-            `${note}4`, 
-            chord.duration, 
+            `${note}4`,
+            chord.duration,
             time - (chord.notes.indexOf(note) * 0.1), // Slight offset for chord effect
             0.5
           )
@@ -142,7 +144,9 @@ const MusicGenerator = ({ count }) => {
   }
 
   const stopComposition = () => {
-    if (!isPlaying) return
+    if (!isPlaying) {
+      return
+    }
 
     Tone.Transport.stop()
     Tone.Transport.cancel()
@@ -158,8 +162,10 @@ const MusicGenerator = ({ count }) => {
   }
 
   const playSingleNote = (frequency) => {
-    if (!isLoaded) return
-    
+    if (!isLoaded) {
+      return
+    }
+
     synthRef.current.triggerAttackRelease(frequency, '8n')
   }
 
@@ -177,7 +183,7 @@ const MusicGenerator = ({ count }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-fibonacci-gold mb-4">Paramètres</h3>
-            
+
             <div>
               <label className="block text-white/80 text-sm mb-2">Tonalité</label>
               <select
@@ -232,7 +238,7 @@ const MusicGenerator = ({ count }) => {
 
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-fibonacci-gold mb-4">Contrôles</h3>
-            
+
             <div className="flex gap-4">
               <motion.button
                 onClick={isPlaying ? stopComposition : playComposition}
@@ -281,7 +287,7 @@ const MusicGenerator = ({ count }) => {
       {composition && (
         <div className="fibonacci-card p-6">
           <h2 className="section-title mb-6">Composition Fibonacci</h2>
-          
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Melody */}
             <div>

@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { 
-  fibonacciSearch, 
-  goldenSectionSearch, 
-  FibonacciHeap 
+import {
+  fibonacciSearch,
+  goldenSectionSearch,
+  FibonacciHeap
 } from '../utils/fibonacciAlgorithms.js'
 
 const AlgorithmViewer = ({ count }) => {
@@ -30,7 +30,7 @@ const AlgorithmViewer = ({ count }) => {
   // Run Fibonacci Search
   const runFibonacciSearch = () => {
     setIsAnimating(true)
-    
+
     setTimeout(() => {
       const func = testFunctions[functionType]
       const result = fibonacciSearch(func, -10, 10, 1e-6, 50)
@@ -42,7 +42,7 @@ const AlgorithmViewer = ({ count }) => {
   // Run Golden Section Search
   const runGoldenSectionSearch = () => {
     setIsAnimating(true)
-    
+
     setTimeout(() => {
       const func = testFunctions[functionType]
       const result = goldenSectionSearch(func, -10, 10, 1e-6, 50)
@@ -55,11 +55,11 @@ const AlgorithmViewer = ({ count }) => {
   const demonstrateHeap = () => {
     setIsAnimating(true)
     setHeapOperations([])
-    
+
     setTimeout(() => {
       const heap = new FibonacciHeap()
       const operations = []
-      
+
       // Insert Fibonacci numbers
       const sequence = []
       let a = 0, b = 1
@@ -69,14 +69,16 @@ const AlgorithmViewer = ({ count }) => {
         sequence.push(value)
         a = b
         b = value
-        if (i === 0) a = 1
+        if (i === 0) {
+          a = 1
+        }
       }
-      
+
       // Extract minimum a few times
       for (let i = 0; i < Math.min(3, Math.floor(count / 3)); i++) {
         heap.extractMin()
       }
-      
+
       setHeapOperations(heap.getOperations())
       setIsAnimating(false)
     }, 1500)
@@ -84,15 +86,15 @@ const AlgorithmViewer = ({ count }) => {
 
   const runAlgorithm = () => {
     switch (activeAlgorithm) {
-      case 'search':
-        runFibonacciSearch()
-        break
-      case 'golden':
-        runGoldenSectionSearch()
-        break
-      case 'heap':
-        demonstrateHeap()
-        break
+    case 'search':
+      runFibonacciSearch()
+      break
+    case 'golden':
+      runGoldenSectionSearch()
+      break
+    case 'heap':
+      demonstrateHeap()
+      break
     }
   }
 
@@ -113,7 +115,7 @@ const AlgorithmViewer = ({ count }) => {
       {/* Algorithm Selection */}
       <div className="fibonacci-card p-6">
         <h2 className="section-title mb-6">Algorithmes d'Optimisation</h2>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <h3 className="text-lg font-semibold text-white mb-4">Type d'algorithme</h3>
@@ -191,14 +193,14 @@ const AlgorithmViewer = ({ count }) => {
                   </div>
                   <div className="text-white/80 text-sm">Point optimal</div>
                 </div>
-                
+
                 <div className="text-center p-4 bg-gradient-to-br from-blue-500/20 to-transparent rounded-lg">
                   <div className="text-2xl font-bold text-blue-400">
                     {searchResult.value.toFixed(4)}
                   </div>
                   <div className="text-white/80 text-sm">Valeur minimale</div>
                 </div>
-                
+
                 <div className="text-center p-4 bg-gradient-to-br from-purple-500/20 to-transparent rounded-lg">
                   <div className="text-2xl font-bold text-purple-400">
                     {searchResult.iterations}
@@ -261,8 +263,8 @@ const AlgorithmViewer = ({ count }) => {
                   >
                     <div className="flex items-center gap-3">
                       <span className={`px-2 py-1 rounded text-xs font-medium ${
-                        op.type === 'insert' 
-                          ? 'bg-green-500/20 text-green-400' 
+                        op.type === 'insert'
+                          ? 'bg-green-500/20 text-green-400'
                           : 'bg-blue-500/20 text-blue-400'
                       }`}>
                         {op.type}
@@ -287,13 +289,13 @@ const AlgorithmViewer = ({ count }) => {
         <h3 className="text-xl font-semibold text-fibonacci-gold mb-6">
           Explication de l'algorithme
         </h3>
-        
+
         <div className="space-y-4">
           {activeAlgorithm === 'search' && (
             <div className="prose prose-invert max-w-none">
               <p className="text-white/80">
-                <strong>Fibonacci Search</strong> est un algorithme d'optimisation unimodale qui utilise 
-                la suite de Fibonacci pour réduire efficacement l'intervalle de recherche. 
+                <strong>Fibonacci Search</strong> est un algorithme d'optimisation unimodale qui utilise
+                la suite de Fibonacci pour réduire efficacement l'intervalle de recherche.
                 Il est particulièrement efficace pour des fonctions coûteuses à évaluer.
               </p>
               <ul className="list-disc list-inside text-white/80 space-y-2">
@@ -303,12 +305,12 @@ const AlgorithmViewer = ({ count }) => {
               </ul>
             </div>
           )}
-          
+
           {activeAlgorithm === 'golden' && (
             <div className="prose prose-invert max-w-none">
               <p className="text-white/80">
-                <strong>Golden Section Search</strong> est similaire au Fibonacci Search mais utilise 
-                directement le nombre d'or (φ ≈ 1.618) pour diviser l'intervalle de recherche. 
+                <strong>Golden Section Search</strong> est similaire au Fibonacci Search mais utilise
+                directement le nombre d'or (φ ≈ 1.618) pour diviser l'intervalle de recherche.
                 C'est une méthode classique d'optimisation.
               </p>
               <ul className="list-disc list-inside text-white/80 space-y-2">
@@ -318,12 +320,12 @@ const AlgorithmViewer = ({ count }) => {
               </ul>
             </div>
           )}
-          
+
           {activeAlgorithm === 'heap' && (
             <div className="prose prose-invert max-w-none">
               <p className="text-white/80">
-                <strong>Fibonacci Heap</strong> est une structure de données avancée qui utilise 
-                les propriétés des nombres de Fibonacci pour optimiser les opérations de tas. 
+                <strong>Fibonacci Heap</strong> est une structure de données avancée qui utilise
+                les propriétés des nombres de Fibonacci pour optimiser les opérations de tas.
                 Il offre des performances amorties exceptionnelles.
               </p>
               <ul className="list-disc list-inside text-white/80 space-y-2">

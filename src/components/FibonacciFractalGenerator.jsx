@@ -29,38 +29,38 @@ const FibonacciFractalGenerator = () => {
   // Spirale de Fibonacci
   const drawFibonacciSpiral = (ctx, width, height) => {
     ctx.clearRect(0, 0, width, height)
-    
+
     // Appliquer la transformation de zoom et pan
     ctx.save()
     ctx.translate(width/2 + panX, height/2 + panY)
     ctx.scale(zoom, zoom)
     ctx.translate(-width/2, -height/2)
-    
+
     ctx.strokeStyle = '#fbbf24'
     ctx.lineWidth = 2 / zoom
-    
+
     const centerX = width / 2
     const centerY = height / 2
     const fib = generateFibonacci(iterations)
-    
+
     let x = centerX
     let y = centerY
     let currentAngle = 0
-    
+
     ctx.beginPath()
     ctx.moveTo(x, y)
-    
+
     for (let i = 0; i < iterations; i++) {
       const radius = fib[i] * scale * 2
       const nextAngle = currentAngle + (GOLDEN_ANGLE * Math.PI / 180)
-      
+
       x = centerX + radius * Math.cos(nextAngle)
       y = centerY + radius * Math.sin(nextAngle)
-      
+
       ctx.lineTo(x, y)
       currentAngle = nextAngle
     }
-    
+
     ctx.stroke()
     ctx.restore()
   }
@@ -68,40 +68,42 @@ const FibonacciFractalGenerator = () => {
   // Arbre de Fibonacci
   const drawFibonacciTree = (ctx, width, height) => {
     ctx.clearRect(0, 0, width, height)
-    
+
     // Appliquer la transformation de zoom et pan
     ctx.save()
     ctx.translate(width/2 + panX, height/2 + panY)
     ctx.scale(zoom, zoom)
     ctx.translate(-width/2, -height/2)
-    
+
     const fib = generateFibonacci(iterations)
     const startX = width / 2
     const startY = height - 50
     const startLength = 100 * scale
-    
+
     const drawBranch = (x, y, length, angle, depth) => {
-      if (depth <= 0) return
-      
+      if (depth <= 0) {
+        return
+      }
+
       const endX = x + length * Math.cos(angle)
       const endY = y - length * Math.sin(angle)
-      
+
       ctx.strokeStyle = `hsl(${120 - depth * 10}, 70%, ${50 + depth * 5}%)`
       ctx.lineWidth = Math.max(1, depth) / zoom
       ctx.beginPath()
       ctx.moveTo(x, y)
       ctx.lineTo(endX, endY)
       ctx.stroke()
-      
+
       // Branches récursives
       const newLength = length * 0.618 // Ratio d'or
       const fibIndex = Math.min(depth - 1, fib.length - 1)
       const angleVariation = (fib[fibIndex] % 60) - 30 // Variation basée sur Fibonacci
-      
+
       drawBranch(endX, endY, newLength, angle + angleVariation * Math.PI / 180, depth - 1)
       drawBranch(endX, endY, newLength, angle - angleVariation * Math.PI / 180, depth - 1)
     }
-    
+
     drawBranch(startX, startY, startLength, Math.PI / 2, iterations)
     ctx.restore()
   }
@@ -109,24 +111,24 @@ const FibonacciFractalGenerator = () => {
   // Galaxie de Fibonacci
   const drawFibonacciGalaxy = (ctx, width, height) => {
     ctx.clearRect(0, 0, width, height)
-    
+
     const centerX = width / 2
     const centerY = height / 2
     const fib = generateFibonacci(iterations)
-    
+
     for (let i = 0; i < iterations; i++) {
       const radius = fib[i] * scale * 3
       const angle = i * GOLDEN_ANGLE * Math.PI / 180
-      
+
       const x = centerX + radius * Math.cos(angle)
       const y = centerY + radius * Math.sin(angle)
-      
+
       // Dessiner une étoile
       ctx.fillStyle = `hsl(${200 + i * 10}, 80%, ${60 + i * 3}%)`
       ctx.beginPath()
       ctx.arc(x, y, Math.max(2, fib[i] * 0.1), 0, 2 * Math.PI)
       ctx.fill()
-      
+
       // Dessiner les bras spiraux
       if (i > 0) {
         ctx.strokeStyle = `hsla(${200 + i * 10}, 60%, 50%, 0.3)`
@@ -142,30 +144,30 @@ const FibonacciFractalGenerator = () => {
   // Fractale de Mandelbrot avec Fibonacci
   const drawFibonacciMandelbrot = (ctx, width, height) => {
     ctx.clearRect(0, 0, width, height)
-    
+
     const fib = generateFibonacci(iterations)
     const maxIterations = Math.min(iterations * 10, 100)
-    
+
     for (let x = 0; x < width; x += 2) {
       for (let y = 0; y < height; y += 2) {
         const zx = (x - width / 2) / (width / 4) * scale
         const zy = (y - height / 2) / (height / 4) * scale
-        
+
         let cx = zx
         let cy = zy
         let iterCount = 0
-        
+
         while (iterCount < maxIterations && cx * cx + cy * cy < 4) {
           const tmp = cx * cx - cy * cy + zx
           cy = 2 * cx * cy + zy
           cx = tmp
           iterCount++
         }
-        
+
         // Couleur basée sur Fibonacci
         const fibIndex = iterCount % fib.length
         const hue = (fib[fibIndex] * 137.5) % 360
-        
+
         ctx.fillStyle = `hsl(${hue}, 80%, ${50 + iterCount % 50}%)`
         ctx.fillRect(x, y, 2, 2)
       }
@@ -175,32 +177,32 @@ const FibonacciFractalGenerator = () => {
   // Fractale de Julia avec Fibonacci
   const drawFibonacciJulia = (ctx, width, height) => {
     ctx.clearRect(0, 0, width, height)
-    
+
     const fib = generateFibonacci(iterations)
     const maxIterations = Math.min(iterations * 8, 80)
-    
+
     // Constante Julia basée sur Fibonacci
     const fibIndex = Math.min(iterations - 1, fib.length - 1)
     const juliaReal = (fib[fibIndex] % 10) / 10 - 0.5
     const juliaImag = (fib[Math.min(fibIndex + 1, fib.length - 1)] % 10) / 10 - 0.5
-    
+
     for (let x = 0; x < width; x += 2) {
       for (let y = 0; y < height; y += 2) {
         let zx = (x - width / 2) / (width / 4) * scale
         let zy = (y - height / 2) / (height / 4) * scale
         let iterCount = 0
-        
+
         while (iterCount < maxIterations && zx * zx + zy * zy < 4) {
           const tmp = zx * zx - zy * zy + juliaReal
           zy = 2 * zx * zy + juliaImag
           zx = tmp
           iterCount++
         }
-        
+
         // Couleur basée sur Fibonacci
         const fibIndex = iterCount % fib.length
         const hue = (fib[fibIndex] * 137.5) % 360
-        
+
         ctx.fillStyle = `hsl(${hue}, 70%, ${30 + iterCount % 70}%)`
         ctx.fillRect(x, y, 2, 2)
       }
@@ -210,39 +212,45 @@ const FibonacciFractalGenerator = () => {
   // Fonction principale de dessin
   const drawFractal = useCallback(() => {
     const canvas = canvasRef.current
-    if (!canvas) return
-    
+    if (!canvas) {
+      return
+    }
+
     const ctx = canvas.getContext('2d')
     const { width, height } = canvas
-    
-    if (width === 0 || height === 0) return
-    
+
+    if (width === 0 || height === 0) {
+      return
+    }
+
     switch (fractalType) {
-      case 'spiral':
-        drawFibonacciSpiral(ctx, width, height)
-        break
-      case 'tree':
-        drawFibonacciTree(ctx, width, height)
-        break
-      case 'galaxy':
-        drawFibonacciGalaxy(ctx, width, height)
-        break
-      case 'mandelbrot':
-        drawFibonacciMandelbrot(ctx, width, height)
-        break
-      case 'julia':
-        drawFibonacciJulia(ctx, width, height)
-        break
+    case 'spiral':
+      drawFibonacciSpiral(ctx, width, height)
+      break
+    case 'tree':
+      drawFibonacciTree(ctx, width, height)
+      break
+    case 'galaxy':
+      drawFibonacciGalaxy(ctx, width, height)
+      break
+    case 'mandelbrot':
+      drawFibonacciMandelbrot(ctx, width, height)
+      break
+    case 'julia':
+      drawFibonacciJulia(ctx, width, height)
+      break
     }
   }, [fractalType, iterations, scale, angle, zoom, panX, panY])
 
   // Animation
   const animate = () => {
-    if (!isAnimating) return
-    
+    if (!isAnimating) {
+      return
+    }
+
     setScale(prev => prev + 0.01 * animationSpeed)
     setAngle(prev => (prev + 0.5 * animationSpeed) % 360)
-    
+
     animationRef.current = requestAnimationFrame(animate)
   }
 
@@ -265,7 +273,7 @@ const FibonacciFractalGenerator = () => {
         cancelAnimationFrame(animationRef.current)
       }
     }
-    
+
     return () => {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current)
@@ -282,14 +290,14 @@ const FibonacciFractalGenerator = () => {
         canvas.height = canvas.offsetHeight
         drawFractal()
       }
-      
+
       // Attendre que le canvas soit rendu
       setTimeout(() => {
         resizeCanvas()
       }, 100)
-      
+
       window.addEventListener('resize', resizeCanvas)
-      
+
       return () => window.removeEventListener('resize', resizeCanvas)
     }
   }, [])
@@ -299,7 +307,7 @@ const FibonacciFractalGenerator = () => {
     const timer = setTimeout(() => {
       drawFractal()
     }, 200)
-    
+
     return () => clearTimeout(timer)
   }, [])
 
@@ -311,7 +319,7 @@ const FibonacciFractalGenerator = () => {
           🌀 Fibonacci Fractal Generator
         </h2>
         <p className="text-white/70 text-lg max-w-3xl mx-auto">
-          Explorez les fractales générées par la suite de Fibonacci et le ratio d'or. 
+          Explorez les fractales générées par la suite de Fibonacci et le ratio d'or.
           Découvrez comment les mathématiques créent des formes infiniment complexes !
         </p>
       </div>
@@ -421,8 +429,8 @@ const FibonacciFractalGenerator = () => {
             <motion.button
               onClick={() => setIsAnimating(!isAnimating)}
               className={`w-full px-4 py-3 rounded-lg font-semibold transition-colors ${
-                isAnimating 
-                  ? 'bg-red-500 hover:bg-red-600 text-white' 
+                isAnimating
+                  ? 'bg-red-500 hover:bg-red-600 text-white'
                   : 'bg-fibonacci-gold hover:bg-yellow-400 text-black'
               }`}
               whileHover={{ scale: 1.05 }}
@@ -432,7 +440,7 @@ const FibonacciFractalGenerator = () => {
             </motion.button>
           </div>
         </div>
-        
+
         {/* Contrôles supplémentaires */}
         <div className="mt-4 flex flex-wrap gap-2">
           <motion.button
@@ -448,7 +456,7 @@ const FibonacciFractalGenerator = () => {
           >
             🔄 Reset
           </motion.button>
-          
+
           <motion.button
             onClick={() => setZoom(prev => Math.min(prev * 1.2, 5))}
             className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold transition-colors"
@@ -457,7 +465,7 @@ const FibonacciFractalGenerator = () => {
           >
             🔍+ Zoom In
           </motion.button>
-          
+
           <motion.button
             onClick={() => setZoom(prev => Math.max(prev / 1.2, 0.1))}
             className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-semibold transition-colors"
@@ -474,7 +482,7 @@ const FibonacciFractalGenerator = () => {
         <h3 className="text-xl font-semibold text-white mb-4">
           🎨 Fractale générée
         </h3>
-        
+
         <div className="bg-black/20 p-4 rounded-lg">
           <canvas
             ref={canvasRef}
@@ -489,7 +497,7 @@ const FibonacciFractalGenerator = () => {
         <h3 className="text-xl font-semibold text-white mb-4">
           📊 Informations sur la fractale
         </h3>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-white/5 p-4 rounded-lg">
             <h4 className="text-lg font-semibold text-fibonacci-gold mb-3">
@@ -556,7 +564,7 @@ const FibonacciFractalGenerator = () => {
         <h3 className="text-xl font-semibold text-white mb-4">
           🌟 Types de fractales Fibonacci
         </h3>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[
             {
@@ -619,26 +627,26 @@ const FibonacciFractalGenerator = () => {
         <h3 className="text-xl font-semibold text-white mb-4">
           🔬 Pourquoi Fibonacci crée-t-il des fractales ?
         </h3>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <h4 className="text-lg font-semibold text-fibonacci-gold mb-2">
               🌿 Auto-similarité naturelle
             </h4>
             <p className="text-white/80 text-sm mb-4">
-              Les fractales Fibonacci reproduisent les patterns de croissance naturelle 
+              Les fractales Fibonacci reproduisent les patterns de croissance naturelle
               où chaque partie ressemble au tout, créant une harmonie visuelle.
             </p>
-            
+
             <h4 className="text-lg font-semibold text-fibonacci-gold mb-2">
               📐 Proportions optimales
             </h4>
             <p className="text-white/80 text-sm">
-              Le ratio d'or maximise l'efficacité de l'espace et de l'énergie, 
+              Le ratio d'or maximise l'efficacité de l'espace et de l'énergie,
               expliquant pourquoi ces formes apparaissent dans la nature.
             </p>
           </div>
-          
+
           <div>
             <h4 className="text-lg font-semibold text-fibonacci-gold mb-2">
               🎯 Applications pratiques
@@ -649,12 +657,12 @@ const FibonacciFractalGenerator = () => {
               <li>• Design d'antennes fractales</li>
               <li>• Compression d'images</li>
             </ul>
-            
+
             <h4 className="text-lg font-semibold text-fibonacci-gold mb-2 mt-4">
               🧠 Perception humaine
             </h4>
             <p className="text-white/80 text-sm">
-              Notre cerveau reconnaît instinctivement les fractales Fibonacci 
+              Notre cerveau reconnaît instinctivement les fractales Fibonacci
               comme "naturelles" et esthétiquement plaisantes.
             </p>
           </div>
@@ -666,7 +674,7 @@ const FibonacciFractalGenerator = () => {
         <h3 className="text-xl font-semibold text-white mb-4">
           🌍 Fractales Fibonacci dans la nature
         </h3>
-        
+
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
             { name: 'Tournesol', pattern: 'Spirales de graines', complexity: 'Élevée' },
@@ -687,9 +695,9 @@ const FibonacciFractalGenerator = () => {
               <div className="text-white/60 text-sm mt-1">{example.pattern}</div>
               <div className={`text-xs mt-2 px-2 py-1 rounded ${
                 example.complexity === 'Très élevée' ? 'bg-red-500/20 text-red-300' :
-                example.complexity === 'Élevée' ? 'bg-orange-500/20 text-orange-300' :
-                example.complexity === 'Moyenne' ? 'bg-yellow-500/20 text-yellow-300' :
-                'bg-green-500/20 text-green-300'
+                  example.complexity === 'Élevée' ? 'bg-orange-500/20 text-orange-300' :
+                    example.complexity === 'Moyenne' ? 'bg-yellow-500/20 text-yellow-300' :
+                      'bg-green-500/20 text-green-300'
               }`}>
                 {example.complexity}
               </div>

@@ -37,7 +37,7 @@ const FibonacciComposer = () => {
       className="fibonacci-card p-8"
     >
       <h2 className="text-3xl font-bold text-white mb-8">Compositeur Fibonacci</h2>
-      
+
       <div className="space-y-6">
         <div className="bg-white/5 p-6 rounded-lg border border-white/10">
           <label className="block text-white/80 mb-2">Nom de la composition:</label>
@@ -70,7 +70,7 @@ const FibonacciComposer = () => {
           >
             Ajouter une note
           </button>
-          
+
           {composition.notes.length > 0 && (
             <div className="mt-4">
               <p className="text-white/80 mb-3">Notes: ({composition.notes.length})</p>
