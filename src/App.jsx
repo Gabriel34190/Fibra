@@ -1,21 +1,34 @@
-import React, { useState } from 'react'
+import React, { useState, Suspense, lazy } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Header from './components/Header'
 import Navigation from './components/Navigation'
 import SequenceViewer from './components/SequenceViewer'
 import Spiral2D from './components/Spiral2D'
-import Spiral3D from './components/Spiral3D'
-import MusicGenerator from './components/MusicGenerator'
 import AlgorithmViewer from './components/AlgorithmViewer'
 import FibonacciDetector from './components/FibonacciDetector'
 import FibonacciSearchVisualizer from './components/FibonacciSearchVisualizer'
-import FibonacciComposer from './components/FibonacciComposer'
-import FibonacciCodingExplorer from './components/FibonacciCodingExplorer'
-import FibonacciFractalGenerator from './components/FibonacciFractalGenerator'
 import FibonacciClock from './components/FibonacciClock'
-import FibonacciTrader from './components/FibonacciTrader'
-import FibonacciEmergenceSimulator from './components/FibonacciEmergenceSimulator'
 import './App.css'
+
+// Lazy load heavy components
+const Spiral3D = lazy(() => import('./components/Spiral3D'))
+const MusicGenerator = lazy(() => import('./components/MusicGenerator'))
+const FibonacciComposer = lazy(() => import('./components/FibonacciComposer'))
+const FibonacciCodingExplorer = lazy(() => import('./components/FibonacciCodingExplorer'))
+const FibonacciFractalGenerator = lazy(() => import('./components/FibonacciFractalGenerator'))
+const FibonacciTrader = lazy(() => import('./components/FibonacciTrader'))
+const FibonacciEmergenceSimulator = lazy(() => import('./components/FibonacciEmergenceSimulator'))
+
+const LoadingSpinner = () => (
+  <div className="flex items-center justify-center h-64 text-white/60">
+    <motion.div
+      animate={{ rotate: 360 }}
+      transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+      className="w-8 h-8 border-2 border-fibonacci-gold border-t-transparent rounded-full"
+    />
+    <span className="ml-3">Chargement...</span>
+  </div>
+)
 
 const App = () => {
   const [activeTab, setActiveTab] = useState('sequence')
@@ -40,7 +53,7 @@ const App = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       <Header />
-      
+
       <div className="container mx-auto px-4 py-8">
         {/* Controls */}
         <div className="fibonacci-card p-6 mb-8">
@@ -61,7 +74,7 @@ const App = () => {
                 <span className="number-display">{fibonacciCount}</span>
               </div>
             </div>
-            
+
             <div className="text-right">
               <p className="text-white/60 text-sm">
                 Ratio d'or: <span className="number-display">1.618</span>
@@ -83,57 +96,59 @@ const App = () => {
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3 }}
             >
-              {activeTab === 'sequence' && (
-                <SequenceViewer count={fibonacciCount} />
-              )}
-              
-              {activeTab === 'spiral2d' && (
-                <Spiral2D count={fibonacciCount} />
-              )}
-              
-              {activeTab === 'spiral3d' && (
-                <Spiral3D count={fibonacciCount} />
-              )}
-              
-              {activeTab === 'music' && (
-                <MusicGenerator count={fibonacciCount} />
-              )}
-              
-              {activeTab === 'algorithms' && (
-                <AlgorithmViewer count={fibonacciCount} />
-              )}
-              
-              {activeTab === 'detector' && (
-                <FibonacciDetector />
-              )}
-              
-              {activeTab === 'search' && (
-                <FibonacciSearchVisualizer />
-              )}
-              
-              {activeTab === 'composer' && (
-                <FibonacciComposer />
-              )}
-              
-              {activeTab === 'coding' && (
-                <FibonacciCodingExplorer />
-              )}
-              
-              {activeTab === 'fractals' && (
-                <FibonacciFractalGenerator />
-              )}
-              
-              {activeTab === 'clock' && (
-                <FibonacciClock />
-              )}
-              
-              {activeTab === 'trader' && (
-                <FibonacciTrader />
-              )}
-              
-              {activeTab === 'emergence' && (
-                <FibonacciEmergenceSimulator />
-              )}
+              <Suspense fallback={<LoadingSpinner />}>
+                {activeTab === 'sequence' && (
+                  <SequenceViewer count={fibonacciCount} />
+                )}
+
+                {activeTab === 'spiral2d' && (
+                  <Spiral2D count={fibonacciCount} />
+                )}
+
+                {activeTab === 'spiral3d' && (
+                  <Spiral3D count={fibonacciCount} />
+                )}
+
+                {activeTab === 'music' && (
+                  <MusicGenerator count={fibonacciCount} />
+                )}
+
+                {activeTab === 'algorithms' && (
+                  <AlgorithmViewer count={fibonacciCount} />
+                )}
+
+                {activeTab === 'detector' && (
+                  <FibonacciDetector />
+                )}
+
+                {activeTab === 'search' && (
+                  <FibonacciSearchVisualizer />
+                )}
+
+                {activeTab === 'composer' && (
+                  <FibonacciComposer />
+                )}
+
+                {activeTab === 'coding' && (
+                  <FibonacciCodingExplorer />
+                )}
+
+                {activeTab === 'fractals' && (
+                  <FibonacciFractalGenerator />
+                )}
+
+                {activeTab === 'clock' && (
+                  <FibonacciClock />
+                )}
+
+                {activeTab === 'trader' && (
+                  <FibonacciTrader />
+                )}
+
+                {activeTab === 'emergence' && (
+                  <FibonacciEmergenceSimulator />
+                )}
+              </Suspense>
             </motion.div>
           </AnimatePresence>
         </main>
