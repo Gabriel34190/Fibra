@@ -1,0 +1,108 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  
+  body {
+    @apply bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900;
+    @apply text-white min-h-screen;
+  }
+}
+
+@layer components {
+  .fibonacci-card {
+    @apply bg-white/10 backdrop-blur-lg border border-white/20 rounded-xl;
+    @apply shadow-2xl transition-all duration-300 hover:bg-white/15;
+  }
+  
+  .fibonacci-button {
+    @apply bg-gradient-to-r from-fibonacci-gold to-fibonacci-deep;
+    @apply text-black font-semibold px-6 py-3 rounded-lg;
+    @apply hover:shadow-lg hover:scale-105 transition-all duration-200;
+    @apply active:scale-95;
+  }
+  
+  .fibonacci-input {
+    @apply bg-white/10 border border-white/30 rounded-lg px-4 py-2;
+    @apply text-white placeholder-white/60 focus:outline-none;
+    @apply focus:border-fibonacci-gold focus:bg-white/15 transition-all;
+  }
+  
+  .spiral-container {
+    @apply relative overflow-hidden rounded-xl;
+    background: radial-gradient(circle at center, rgba(255, 215, 0, 0.1) 0%, transparent 70%);
+  }
+  
+  .section-title {
+    @apply text-3xl font-bold bg-gradient-to-r from-fibonacci-gold to-white bg-clip-text text-transparent;
+  }
+  
+  .number-display {
+    @apply text-fibonacci-gold font-mono text-lg font-semibold;
+    @apply bg-black/20 px-3 py-1 rounded-lg border border-fibonacci-gold/30;
+  }
+}
+
+@layer utilities {
+  .text-shadow {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+  
+  .golden-gradient {
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #FF8C00 100%);
+  }
+  
+  .spiral-animation {
+    animation: spiral 20s linear infinite;
+  }
+  
+  @keyframes spiral {
+    0% { transform: rotate(0deg) scale(1); }
+    100% { transform: rotate(360deg) scale(1.618); }
+  }
+  
+  .pulse-gold {
+    animation: pulse-gold 2s ease-in-out infinite;
+  }
+  
+  @keyframes pulse-gold {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.8; transform: scale(1.05); }
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-slate-800/50;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-fibonacci-gold/60 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-fibonacci-gold/80;
+}
+
+/* Loading animation */
+.loading-spiral {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 215, 0, 0.3);
+  border-top: 3px solid #FFD700;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
