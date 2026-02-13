@@ -9,10 +9,23 @@ const SequenceViewer = ({ count }) => {
     return sequence.slice(1).map((_, i) => {
       const current = sequence[i + 1]
       const previous = sequence[i]
+
+      // handle BigInt values by converting to Number for ratio/error calculation
+      let ratio = 0
+      if (previous === 0 || previous === 0n) {
+        ratio = 0
+      } else if (typeof current === 'bigint' || typeof previous === 'bigint') {
+        ratio = Number(current) / Number(previous)
+      } else {
+        ratio = current / previous
+      }
+
+      const error = Math.abs(ratio - GOLDEN_RATIO)
+
       return {
-        ratio: previous !== 0 ? current / previous : 0,
+        ratio,
         index: i,
-        error: previous !== 0 ? Math.abs(current / previous - GOLDEN_RATIO) : 0
+        error
       }
     })
   }, [sequence])
@@ -25,6 +38,44 @@ const SequenceViewer = ({ count }) => {
         staggerChildren: 0.03
       }
     }
+  }
+
+  const formatFullNumber = (n) => {
+    if (typeof n === 'bigint') {
+      return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
+    }
+    if (typeof n === 'number' && isFinite(n)) {
+      return new Intl.NumberFormat('fr-FR').format(n)
+    }
+    return String(n)
+  }
+
+  const formatNumberForDisplay = (n) => {
+    if (typeof n === 'bigint') {
+      const s = n.toString()
+      const len = s.length
+      const suffixes = ['', 'k', 'M', 'G', 'T', 'P']
+      const group = Math.floor((len - 1) / 3)
+      if (group === 0) return s
+      const divisor = Math.pow(10, group * 3)
+      // take the first digits to create a compact string
+      const main = Number(s.slice(0, Math.min(3, s.length)))
+      const scaled = main / Math.pow(10, Math.max(0, (s.length - Math.min(3, s.length))))
+      return `${scaled.toFixed(2).replace('.', ',')} ${suffixes[group]}`
+    }
+
+    if (typeof n === 'number' && isFinite(n)) {
+      if (Math.abs(n) >= 1000) {
+        try {
+          return new Intl.NumberFormat('fr-FR', { notation: 'compact', maximumFractionDigits: 2 }).format(n)
+        } catch (e) {
+          return n.toLocaleString('fr-FR')
+        }
+      }
+      return n.toLocaleString('fr-FR')
+    }
+
+    return String(n)
   }
 
   const itemVariants = {
@@ -50,18 +101,31 @@ const SequenceViewer = ({ count }) => {
           {sequence.map((number, index) => (
             <motion.div
               key={index}
-              className="number-display text-center p-2"
+              className="number-display text-center p-2 w-full min-w-0 relative group overflow-visible"
               variants={itemVariants}
               whileHover={{ scale: 1.1, rotate: 5 }}
             >
-              {number.toLocaleString()}
+              <div className="absolute z-50 -top-10 left-1/2 transform -translate-x-1/2 bg-black/80 text-xs text-white px-2 py-1 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                <span className="font-mono">{formatFullNumber(number)}</span>
+              </div>
+
+              <span className="block w-full overflow-hidden break-words">
+                {formatNumberForDisplay(number)}
+              </span>
             </motion.div>
           ))}
         </motion.div>
 
         <div className="mt-6 p-4 bg-black/20 rounded-lg">
           <p className="text-white/80 text-sm">
-            <strong>Terme {count}:</strong> {sequence[count - 1]?.toLocaleString() || 'N/A'}
+            <strong>Terme {count}:</strong>{' '}
+            {sequence[count - 1] == null ? (
+              'N/A'
+            ) : (
+              <span title={formatFullNumber(sequence[count - 1])}>
+                {formatNumberForDisplay(sequence[count - 1])}
+              </span>
+            )}
           </p>
         </div>
       </div>
@@ -133,7 +197,21 @@ const SequenceViewer = ({ count }) => {
 
           <div className="text-center p-4 bg-gradient-to-br from-green-500/20 to-transparent rounded-lg">
             <div className="text-3xl font-bold text-green-400 mb-2">
-              {sequence.length > 0 ? sequence.reduce((a, b) => a + b, 0).toLocaleString() : '0'}
+              {sequence.length > 0 ? (
+                <span title={formatFullNumber(
+                  typeof sequence[0] === 'bigint'
+                    ? sequence.reduce((a, b) => a + b, 0n)
+                    : sequence.reduce((a, b) => a + b, 0)
+                )}>
+                  {formatNumberForDisplay(
+                    typeof sequence[0] === 'bigint'
+                      ? sequence.reduce((a, b) => a + b, 0n)
+                      : sequence.reduce((a, b) => a + b, 0)
+                  )}
+                </span>
+              ) : (
+                '0'
+              )}
             </div>
             <div className="text-white/80">Somme totale</div>
           </div>
