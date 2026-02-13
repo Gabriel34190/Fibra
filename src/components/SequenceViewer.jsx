@@ -183,8 +183,8 @@ const SequenceViewer = ({ count }) => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="text-center p-4 bg-gradient-to-br from-fibonacci-gold/20 to-transparent rounded-lg">
             <div className="text-3xl font-bold text-fibonacci-gold mb-2">
-              {sequence.length > 2 ? (sequence[sequence.length - 1] / sequence[sequence.length - 2]).toFixed(6) : 'N/A'}
-            </div>
+                {sequence.length > 2 ? fibonacciRatio(sequence.length - 2).toFixed(6) : 'N/A'}
+              </div>
             <div className="text-white/80">Limite des ratios</div>
           </div>
 

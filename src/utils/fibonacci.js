@@ -196,7 +196,10 @@ export function fibonacciRatio(position) {
   const current = sequence[position + 1]
   const previous = sequence[position]
 
-  if (previous === 0 || previous === 0n) return current
+  if (previous === 0 || previous === 0n) {
+    // return a Number
+    return typeof current === 'bigint' ? Number(current) : current
+  }
 
   // Ensure we return a floating point ratio (Number). Convert BigInt to Number if needed.
   if (typeof current === 'bigint' || typeof previous === 'bigint') {
