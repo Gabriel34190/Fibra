@@ -18,10 +18,34 @@ export function generateFibonacciSequence(n) {
     return [0, 1]
   }
 
+  const MAX_SAFE = Number.MAX_SAFE_INTEGER || 9007199254740991
   const sequence = [0, 1]
+  let usingBigInt = false
+
   for (let i = 2; i < n; i++) {
-    sequence.push(sequence[i - 1] + sequence[i - 2])
+    const prev = sequence[i - 1]
+    const prev2 = sequence[i - 2]
+
+    if (!usingBigInt) {
+      const next = prev + prev2
+      // If next would overflow JS safe integer, switch to BigInt mode
+      if (next > MAX_SAFE) {
+        usingBigInt = true
+        // convert all previous values to BigInt to keep array homogeneous
+        for (let j = 0; j < sequence.length; j++) {
+          sequence[j] = BigInt(sequence[j])
+        }
+        // now push using BigInt math
+        sequence.push(sequence[i - 1] + sequence[i - 2])
+      } else {
+        sequence.push(next)
+      }
+    } else {
+      // operate with BigInt
+      sequence.push(sequence[i - 1] + sequence[i - 2])
+    }
   }
+
   return sequence
 }
 
@@ -172,7 +196,14 @@ export function fibonacciRatio(position) {
   const current = sequence[position + 1]
   const previous = sequence[position]
 
-  return previous === 0 ? current : current / previous
+  if (previous === 0 || previous === 0n) return current
+
+  // Ensure we return a floating point ratio (Number). Convert BigInt to Number if needed.
+  if (typeof current === 'bigint' || typeof previous === 'bigint') {
+    return Number(current) / Number(previous)
+  }
+
+  return current / previous
 }
 
 /**
