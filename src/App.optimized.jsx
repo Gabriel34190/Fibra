@@ -24,7 +24,6 @@ const Spiral3D = lazy(() => import('./components/Spiral3D'))
 const AlgorithmViewer = lazy(() => import('./components/AlgorithmViewer'))
 const FibonacciDetector = lazy(() => import('./components/FibonacciDetector'))
 const FibonacciSearchVisualizer = lazy(() => import('./components/FibonacciSearchVisualizer'))
-const FibonacciComposer = lazy(() => import('./components/FibonacciComposer'))
 const FibonacciCodingExplorer = lazy(() => import('./components/FibonacciCodingExplorer'))
 const FibonacciFractalGenerator = lazy(() => import('./components/FibonacciFractalGenerator'))
 const FibonacciClock = lazy(() => import('./components/FibonacciClock'))
@@ -59,7 +58,6 @@ const App = () => {
     { id: 'algorithms', label: 'Algorithmes', icon: '⚙️' },
     { id: 'detector', label: 'Détecteur IA', icon: '🧬' },
     { id: 'search', label: 'Recherche', icon: '🔍' },
-    { id: 'composer', label: 'Compositeur', icon: '🎼' },
     { id: 'coding', label: 'Compression', icon: '🔐' },
     { id: 'fractals', label: 'Fractales', icon: '🌀' },
     { id: 'clock', label: 'Horloge', icon: '⏰' },
@@ -140,10 +138,6 @@ const App = () => {
                 
                 {activeTab === 'search' && (
                   <FibonacciSearchVisualizer />
-                )}
-                
-                {activeTab === 'composer' && (
-                  <FibonacciComposer />
                 )}
                 
                 {activeTab === 'coding' && (

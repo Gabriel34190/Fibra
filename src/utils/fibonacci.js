@@ -20,30 +20,18 @@ export function generateFibonacciSequence(n) {
 
   const MAX_SAFE = Number.MAX_SAFE_INTEGER || 9007199254740991
   const sequence = [0, 1]
-  let usingBigInt = false
 
   for (let i = 2; i < n; i++) {
     const prev = sequence[i - 1]
     const prev2 = sequence[i - 2]
+    let next = prev + prev2
 
-    if (!usingBigInt) {
-      const next = prev + prev2
-      // If next would overflow JS safe integer, switch to BigInt mode
-      if (next > MAX_SAFE) {
-        usingBigInt = true
-        // convert all previous values to BigInt to keep array homogeneous
-        for (let j = 0; j < sequence.length; j++) {
-          sequence[j] = BigInt(sequence[j])
-        }
-        // now push using BigInt math
-        sequence.push(sequence[i - 1] + sequence[i - 2])
-      } else {
-        sequence.push(next)
-      }
-    } else {
-      // operate with BigInt
-      sequence.push(sequence[i - 1] + sequence[i - 2])
+    // Clamp to MAX_SAFE to avoid overflow and BigInt
+    if (next > MAX_SAFE) {
+      next = MAX_SAFE
     }
+
+    sequence.push(next)
   }
 
   return sequence
@@ -218,8 +206,14 @@ export function fibonacciRatio(position) {
 export function fibonacciSphere(n, radius = 1) {
   const points = []
 
+  if (n <= 0) {
+    return points
+  }
+
   for (let i = 0; i < n; i++) {
-    const y = 1 - (i / (n - 1)) * 2 // y goes from 1 to -1
+    // Avoid division by zero when n === 1
+    const t = n > 1 ? (i / (n - 1)) : 0
+    const y = 1 - t * 2 // y goes from 1 to -1
     const radiusAtY = Math.sqrt(1 - y * y)
 
     const theta = GOLDEN_RATIO * i * 2 * Math.PI

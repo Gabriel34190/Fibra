@@ -13,7 +13,6 @@ import './App.css'
 // Lazy load heavy components
 const Spiral3D = lazy(() => import('./components/Spiral3D'))
 const MusicGenerator = lazy(() => import('./components/MusicGenerator'))
-const FibonacciComposer = lazy(() => import('./components/FibonacciComposer'))
 const FibonacciCodingExplorer = lazy(() => import('./components/FibonacciCodingExplorer'))
 const FibonacciFractalGenerator = lazy(() => import('./components/FibonacciFractalGenerator'))
 const FibonacciTrader = lazy(() => import('./components/FibonacciTrader'))
@@ -42,7 +41,6 @@ const App = () => {
     { id: 'algorithms', label: 'Algorithmes', icon: '⚙️' },
     { id: 'detector', label: 'Détecteur IA', icon: '🧬' },
     { id: 'search', label: 'Recherche', icon: '🔍' },
-    { id: 'composer', label: 'Compositeur', icon: '🎼' },
     { id: 'coding', label: 'Compression', icon: '🔐' },
     { id: 'fractals', label: 'Fractales', icon: '🌀' },
     { id: 'clock', label: 'Horloge', icon: '⏰' },
@@ -123,10 +121,6 @@ const App = () => {
 
                 {activeTab === 'search' && (
                   <FibonacciSearchVisualizer />
-                )}
-
-                {activeTab === 'composer' && (
-                  <FibonacciComposer />
                 )}
 
                 {activeTab === 'coding' && (
