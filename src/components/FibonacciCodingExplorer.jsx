@@ -19,6 +19,10 @@ const FibonacciCodingExplorer = () => {
     huffmanRatio: 0,
     lzwRatio: 0
   })
+  const [tutorialStep, setTutorialStep] = useState(0)
+  const [codeExample, setCodeExample] = useState('fib')
+  const [runResult, setRunResult] = useState(null)
+  const [running, setRunning] = useState(false)
 
   // Générer la suite de Fibonacci
   const generateFibonacci = (n) => {
@@ -198,6 +202,67 @@ const FibonacciCodingExplorer = () => {
     }
   }
 
+  const runExample = () => {
+    setRunning(true)
+    setRunResult(null)
+    setTimeout(() => {
+      try {
+        if (codeExample === 'fib') {
+          const fib = generateFibonacci(15)
+          setRunResult({ type: 'fib', value: fib, text: `fib(1..15) = [${fib.join(', ')}]` })
+        } else if (codeExample === 'zeckendorf') {
+          const z = findZeckendorfRepresentation(42)
+          setRunResult({ type: 'zeckendorf', value: z, text: `Zeckendorf(42) = ${z.join(' + ')} = 42` })
+        } else if (codeExample === 'encode') {
+          const enc = encodeCharacter('A')
+          setRunResult({ type: 'encode', value: enc, text: `'A' (${enc.charCode}) → ${enc.zeckendorf.join('+')} → ${enc.binary}` })
+        }
+      } catch (e) {
+        setRunResult({ error: e.message })
+      }
+      setRunning(false)
+    }, 300)
+  }
+
+  const TUTORIAL_STEPS = [
+    { title: 'Qu\'est-ce que le codage de Fibonacci ?', body: 'Le codage de Fibonacci représente des entiers en utilisant la suite de Fibonacci. Chaque entier s\'écrit de façon unique comme somme de nombres de Fibonacci non consécutifs (théorème de Zeckendorf).' },
+    { title: 'Représentation de Zeckendorf', body: 'Pour obtenir la représentation de Zeckendorf d\'un nombre n, on soustrait successivement le plus grand nombre de Fibonacci ≤ n. Exemple : 42 = 34 + 8.' },
+    { title: 'Encodage binaire', body: 'On représente chaque terme de la somme par un bit 1 à la position correspondante dans la suite de Fibonacci, et on termine par "11" pour marquer la fin du caractère (code sans préfixe).' },
+    { title: 'Décodage', body: 'On lit les bits jusqu\'au marqueur "11", on somme les nombres de Fibonacci aux positions des 1, et on obtient le code du caractère (ex. ASCII).' }
+  ]
+
+  const CODE_SNIPPETS = {
+    fib: `// Générer les n premiers nombres de Fibonacci (hors 0)
+function fib(n) {
+  const f = [1, 1];
+  for (let i = 2; i < n; i++)
+    f[i] = f[i-1] + f[i-2];
+  return f;
+}
+// Exemple: fib(10) → [1, 1, 2, 3, 5, 8, 13, 21, 34, 55]`,
+    zeckendorf: `// Représentation de Zeckendorf : n comme somme de Fibonacci non consécutifs
+function zeckendorf(n) {
+  const f = fib(20);
+  const repr = [];
+  for (let i = f.length - 1; i >= 0; i--)
+    if (f[i] <= n) { repr.push(f[i]); n -= f[i]; }
+  return repr.reverse();
+}
+// Exemple: zeckendorf(42) → [34, 8]`,
+    encode: `// Encoder un caractère en code Fibonacci (binaire avec marqueur "11")
+function encodeChar(c) {
+  const code = c.charCodeAt(0);
+  const z = zeckendorf(code);
+  let binary = "";
+  let j = 0;
+  for (const v of z) {
+    while (f[j] !== v) { binary += "0"; j++; }
+    binary += "1"; j++;
+  }
+  return binary + "11";
+}`
+  }
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -206,9 +271,88 @@ const FibonacciCodingExplorer = () => {
           🔐 Fibonacci Coding Explorer
         </h2>
         <p className="text-white/70 text-lg max-w-3xl mx-auto">
-          Découvrez comment la suite de Fibonacci peut encoder efficacement l'information
+          Découvrez comment la suite de Fibonacci peut encoder efficacement l&apos;information
           grâce à la représentation de Zeckendorf. Un système de compression unique !
         </p>
+      </div>
+
+      {/* Tutoriel interactif */}
+      <div className="fibonacci-card p-6">
+        <h3 className="text-xl font-semibold text-fibonacci-gold mb-4">📚 Tutoriel interactif</h3>
+        <div className="flex flex-wrap gap-2 mb-4">
+          {TUTORIAL_STEPS.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setTutorialStep(i)}
+              className={`px-3 py-1 rounded text-sm font-medium ${
+                tutorialStep === i ? 'bg-fibonacci-gold text-black' : 'bg-white/10 text-white hover:bg-white/20'
+              }`}
+            >
+              Étape {i + 1}
+            </button>
+          ))}
+        </div>
+        <div className="bg-white/5 p-4 rounded-lg">
+          <h4 className="text-fibonacci-gold font-semibold mb-2">{TUTORIAL_STEPS[tutorialStep].title}</h4>
+          <p className="text-white/80 text-sm">{TUTORIAL_STEPS[tutorialStep].body}</p>
+        </div>
+      </div>
+
+      {/* Exemples de code commentés */}
+      <div className="fibonacci-card p-6">
+        <h3 className="text-xl font-semibold text-fibonacci-gold mb-4">💻 Exemples de code commentés</h3>
+        <div className="flex flex-wrap gap-2 mb-4">
+          {Object.keys(CODE_SNIPPETS).map((key) => (
+            <button
+              key={key}
+              onClick={() => setCodeExample(key)}
+              className={`px-3 py-1 rounded text-sm ${
+                codeExample === key ? 'bg-fibonacci-gold text-black' : 'bg-white/10 text-white'
+              }`}
+            >
+              {key === 'fib' ? 'Fibonacci' : key === 'zeckendorf' ? 'Zeckendorf' : 'Encode char'}
+            </button>
+          ))}
+        </div>
+        <pre className="bg-black/30 p-4 rounded-lg text-sm text-green-300 overflow-x-auto whitespace-pre font-mono">
+          {CODE_SNIPPETS[codeExample]}
+        </pre>
+      </div>
+
+      {/* Exécution directe dans l'interface */}
+      <div className="fibonacci-card p-6">
+        <h3 className="text-xl font-semibold text-fibonacci-gold mb-4">▶️ Exécuter un exemple</h3>
+        <p className="text-white/70 text-sm mb-4">
+          Choisissez un exemple et cliquez sur Exécuter pour voir le résultat (calcul côté client, sans envoyer de code).
+        </p>
+        <div className="flex flex-wrap gap-4 items-center">
+          <select
+            value={codeExample}
+            onChange={(e) => setCodeExample(e.target.value)}
+            className="px-3 py-2 bg-white/10 border border-white/20 rounded text-white"
+          >
+            <option value="fib">Calculer fib(1..15)</option>
+            <option value="zeckendorf">Zeckendorf(42)</option>
+            <option value="encode">Encoder le caractère &apos;A&apos;</option>
+          </select>
+          <button
+            type="button"
+            onClick={runExample}
+            disabled={running}
+            className="px-4 py-2 rounded font-medium bg-fibonacci-gold text-black hover:opacity-90 disabled:opacity-50"
+          >
+            {running ? 'Exécution...' : 'Exécuter'}
+          </button>
+        </div>
+        {runResult && (
+          <div className="mt-4 p-4 bg-black/20 rounded-lg font-mono text-sm text-green-300">
+            {runResult.error ? (
+              <span className="text-red-400">Erreur: {runResult.error}</span>
+            ) : (
+              <div>{runResult.text}</div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Input Section */}

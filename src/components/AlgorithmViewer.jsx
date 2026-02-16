@@ -6,12 +6,21 @@ import {
   FibonacciHeap
 } from '../utils/fibonacciAlgorithms.js'
 
+const COMPLEXITY = {
+  search: { time: 'O(log n)', space: 'O(1)', desc: 'n = nombre d\'itérations pour atteindre la précision' },
+  golden: { time: 'O(log n)', space: 'O(1)', desc: 'Convergence par réduction d\'intervalle avec φ' },
+  heap: { time: 'Insert O(1) amorti, ExtractMin O(log n) amorti', space: 'O(n)', desc: 'n = nombre de nœuds dans le tas' }
+}
+
 const AlgorithmViewer = ({ count }) => {
   const [activeAlgorithm, setActiveAlgorithm] = useState('search')
   const [functionType, setFunctionType] = useState('quadratic')
   const [searchResult, setSearchResult] = useState(null)
   const [heapOperations, setHeapOperations] = useState([])
   const [isAnimating, setIsAnimating] = useState(false)
+  const [stepIndex, setStepIndex] = useState(0)
+  const [benchmarkResult, setBenchmarkResult] = useState(null)
+  const [benchmarking, setBenchmarking] = useState(false)
 
   // Test functions for optimization
   const testFunctions = {
@@ -85,6 +94,8 @@ const AlgorithmViewer = ({ count }) => {
   }
 
   const runAlgorithm = () => {
+    setStepIndex(0)
+    setBenchmarkResult(null)
     switch (activeAlgorithm) {
     case 'search':
       runFibonacciSearch()
@@ -97,6 +108,36 @@ const AlgorithmViewer = ({ count }) => {
       break
     }
   }
+
+  const runBenchmark = () => {
+    setBenchmarking(true)
+    setBenchmarkResult(null)
+    const runs = 100
+    const func = testFunctions[functionType]
+    setTimeout(() => {
+      const t0 = performance.now()
+      for (let i = 0; i < runs; i++) {
+        fibonacciSearch(func, -10, 10, 1e-6, 50)
+      }
+      const tFib = performance.now() - t0
+
+      const t1 = performance.now()
+      for (let i = 0; i < runs; i++) {
+        goldenSectionSearch(func, -10, 10, 1e-6, 50)
+      }
+      const tGolden = performance.now() - t1
+
+      setBenchmarkResult({
+        fibonacciSearch: { totalMs: tFib, perRunMs: tFib / runs, runs },
+        goldenSectionSearch: { totalMs: tGolden, perRunMs: tGolden / runs, runs }
+      })
+      setBenchmarking(false)
+    }, 50)
+  }
+
+  const details = searchResult?.details ?? []
+  const canStep = details.length > 0
+  const currentStep = details[stepIndex]
 
   // Visualization data for the test function
   const functionData = useMemo(() => {
@@ -153,28 +194,74 @@ const AlgorithmViewer = ({ count }) => {
           </div>
         </div>
 
-        <div className="mt-6">
+        <div className="mt-6 flex flex-wrap gap-4">
           <motion.button
             onClick={runAlgorithm}
             disabled={isAnimating}
-            className={`fibonacci-button w-full md:w-auto ${isAnimating ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`fibonacci-button ${isAnimating ? 'opacity-50 cursor-not-allowed' : ''}`}
             whileHover={{ scale: isAnimating ? 1 : 1.05 }}
             whileTap={{ scale: isAnimating ? 1 : 0.95 }}
           >
             {isAnimating ? (
-              <>
-                <span className="mr-2">⏳</span>
-                Calcul en cours...
-              </>
+              <> <span className="mr-2">⏳</span> Calcul en cours... </>
             ) : (
-              <>
-                <span className="mr-2">▶️</span>
-                Exécuter l'algorithme
-              </>
+              <> <span className="mr-2">▶️</span> Exécuter l&apos;algorithme </>
             )}
           </motion.button>
+          {(activeAlgorithm === 'search' || activeAlgorithm === 'golden') && (
+            <motion.button
+              onClick={runBenchmark}
+              disabled={benchmarking}
+              className="px-4 py-2 rounded-lg font-medium bg-white/10 text-white border border-white/20 hover:bg-white/20 disabled:opacity-50"
+              whileHover={{ scale: benchmarking ? 1 : 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              {benchmarking ? '⏳ Benchmark...' : '📊 Benchmark performance'}
+            </motion.button>
+          )}
         </div>
       </div>
+
+      {/* Analyse de complexité (temps, espace) */}
+      <div className="fibonacci-card p-6">
+        <h3 className="text-xl font-semibold text-fibonacci-gold mb-4">Analyse de la complexité</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="p-4 bg-white/5 rounded-lg">
+            <div className="text-fibonacci-gold font-mono text-lg mb-1">Temps</div>
+            <div className="text-white/90">{COMPLEXITY[activeAlgorithm].time}</div>
+          </div>
+          <div className="p-4 bg-white/5 rounded-lg">
+            <div className="text-blue-400 font-mono text-lg mb-1">Espace</div>
+            <div className="text-white/90">{COMPLEXITY[activeAlgorithm].space}</div>
+          </div>
+          <div className="p-4 bg-white/5 rounded-lg md:col-span-1">
+            <div className="text-white/70 text-sm">{COMPLEXITY[activeAlgorithm].desc}</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Benchmark performance */}
+      {benchmarkResult && (
+        <div className="fibonacci-card p-6">
+          <h3 className="text-xl font-semibold text-fibonacci-gold mb-4">Résultat du benchmark</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 bg-green-500/10 rounded-lg border border-green-500/30">
+              <div className="font-semibold text-green-400 mb-2">Fibonacci Search</div>
+              <div className="text-white/90 text-sm">
+                {benchmarkResult.fibonacciSearch.runs} runs : {benchmarkResult.fibonacciSearch.totalMs.toFixed(2)} ms total
+                ({benchmarkResult.fibonacciSearch.perRunMs.toFixed(4)} ms / run)
+              </div>
+            </div>
+            <div className="p-4 bg-blue-500/10 rounded-lg border border-blue-500/30">
+              <div className="font-semibold text-blue-400 mb-2">Golden Section Search</div>
+              <div className="text-white/90 text-sm">
+                {benchmarkResult.goldenSectionSearch.runs} runs : {benchmarkResult.goldenSectionSearch.totalMs.toFixed(2)} ms total
+                ({benchmarkResult.goldenSectionSearch.perRunMs.toFixed(4)} ms / run)
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Results */}
       {(searchResult || heapOperations.length > 0) && (
@@ -209,34 +296,77 @@ const AlgorithmViewer = ({ count }) => {
                 </div>
               </div>
 
-              {/* Iteration Details */}
+              {/* Iteration Details - Pas à pas */}
               <div>
                 <h4 className="text-lg font-semibold text-white mb-4">
-                  Progression de l'optimisation
+                  Affichage pas à pas de l&apos;exécution
                 </h4>
-                <div className="max-h-64 overflow-y-auto space-y-2">
-                  {searchResult.details.slice(0, 10).map((step, index) => (
-                    <motion.div
-                      key={index}
-                      className="flex items-center justify-between p-3 bg-white/5 rounded-lg"
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.05 }}
+                {canStep && (
+                  <div className="flex items-center gap-4 mb-4">
+                    <button
+                      type="button"
+                      onClick={() => setStepIndex(Math.max(0, stepIndex - 1))}
+                      disabled={stepIndex === 0}
+                      className="px-3 py-1 rounded bg-white/10 text-white disabled:opacity-40 text-sm"
                     >
-                      <div className="flex items-center gap-4">
-                        <span className="text-fibonacci-gold font-mono text-sm w-8">
-                          {step.iteration}
-                        </span>
-                        <div className="text-white text-sm">
-                          Range: [{step.a.toFixed(3)}, {step.b.toFixed(3)}]
-                        </div>
-                      </div>
-                      <div className="text-white/60 text-sm">
-                        Précision: {(step.range).toFixed(6)}
-                      </div>
-                    </motion.div>
-                  ))}
-                  {searchResult.details.length > 10 && (
+                      ← Précédent
+                    </button>
+                    <span className="text-white/80 text-sm">
+                      Étape {stepIndex + 1} / {details.length}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setStepIndex(Math.min(details.length - 1, stepIndex + 1))}
+                      disabled={stepIndex >= details.length - 1}
+                      className="px-3 py-1 rounded bg-white/10 text-white disabled:opacity-40 text-sm"
+                    >
+                      Suivant →
+                    </button>
+                  </div>
+                )}
+                <div className="max-h-64 overflow-y-auto space-y-2">
+                  {canStep
+                    ? details.map((step, index) => (
+                        <motion.div
+                          key={index}
+                          className={`flex items-center justify-between p-3 rounded-lg ${
+                            index === stepIndex ? 'bg-fibonacci-gold/20 border border-fibonacci-gold/50' : 'bg-white/5'
+                          }`}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: index * 0.03 }}
+                        >
+                          <div className="flex items-center gap-4">
+                            <span className="text-fibonacci-gold font-mono text-sm w-8">
+                              {step.iteration}
+                            </span>
+                            <div className="text-white text-sm">
+                              Range: [{step.a.toFixed(3)}, {step.b.toFixed(3)}]
+                            </div>
+                          </div>
+                          <div className="text-white/60 text-sm">
+                            Précision: {(step.range).toFixed(6)}
+                          </div>
+                        </motion.div>
+                      ))
+                    : searchResult.details.slice(0, 10).map((step, index) => (
+                        <motion.div
+                          key={index}
+                          className="flex items-center justify-between p-3 bg-white/5 rounded-lg"
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: index * 0.05 }}
+                        >
+                          <div className="flex items-center gap-4">
+                            <span className="text-fibonacci-gold font-mono text-sm w-8">{step.iteration}</span>
+                            <div className="text-white text-sm">
+                              Range: [{step.a.toFixed(3)}, {step.b.toFixed(3)}]
+                            </div>
+                          </div>
+                          <div className="text-white/60 text-sm">Précision: {(step.range).toFixed(6)}</div>
+                        </motion.div>
+                      ))}
+                  {searchResult.details.length > 10 && !canStep && (
                     <div className="text-center text-white/60 text-sm">
                       ... et {searchResult.details.length - 10} autres itérations
                     </div>

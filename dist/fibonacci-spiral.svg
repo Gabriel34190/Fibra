@@ -1,0 +1,21 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFD700;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FFA500;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="32" cy="32" r="30" fill="none" stroke="url(#goldGradient)" stroke-width="2" opacity="0.3"/>
+  
+  <!-- Fibonacci spiral path -->
+  <path d="M32,32 L32,28 L36,28 L36,32 L36,36 L32,36 L28,36 L28,32 L24,32 L24,36 L24,40 L28,40 L32,40 L36,40 L40,40 L40,36 L40,32 L40,28 L40,24 L36,24 L32,24 L28,24 L24,24 L20,24 L20,28 L20,32 L20,36 L20,40 L20,44 L24,44 L28,44 L32,44 L36,44 L40,44 L44,44 L44,40 L44,36 L44,32 L44,28 L44,24 L44,20 L40,20 L36,20 L32,20 L28,20 L24,20 L20,20 L16,20" 
+        fill="none" 
+        stroke="url(#goldGradient)" 
+        stroke-width="2"
+        stroke-linecap="round"/>
+  
+  <!-- Center dot -->
+  <circle cx="32" cy="32" r="2" fill="url(#goldGradient)"/>
+</svg>
