@@ -41,7 +41,7 @@ const App = () => {
     { id: 'algorithms', label: 'Algorithmes', icon: '⚙️' },
     { id: 'detector', label: 'Détecteur IA', icon: '🧬' },
     { id: 'search', label: 'Recherche', icon: '🔍' },
-    { id: 'coding', label: 'Compression', icon: '🔐' },
+    { id: 'coding', label: 'Codage', icon: '🔐' },
     { id: 'fractals', label: 'Fractales', icon: '🌀' },
     { id: 'clock', label: 'Horloge', icon: '⏰' },
     { id: 'trader', label: 'Trading', icon: '📈' },
