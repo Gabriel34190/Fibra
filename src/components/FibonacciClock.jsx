@@ -3,11 +3,23 @@ import { motion, AnimatePresence } from 'framer-motion'
 
 const FibonacciClock = () => {
   const [currentTime, setCurrentTime] = useState(new Date())
+  const [timeMode, setTimeMode] = useState('realtime') // 'realtime' | 'simulation'
+  const [simulationHours, setSimulationHours] = useState(12)
+  const [simulationMinutes, setSimulationMinutes] = useState(0)
+  const [simulationSeconds, setSimulationSeconds] = useState(0)
   const [displayMode, setDisplayMode] = useState('fibonacci')
   const [showSeconds, setShowSeconds] = useState(true)
   const [is24Hour, setIs24Hour] = useState(true)
   const [fibonacciValues, setFibonacciValues] = useState([])
   const [activePlates, setActivePlates] = useState({ hours: [], minutes: [], seconds: [] })
+
+  const displayTime = timeMode === 'simulation'
+    ? (() => {
+        const d = new Date()
+        d.setHours(simulationHours % 24, simulationMinutes % 60, simulationSeconds % 60, 0)
+        return d
+      })()
+    : currentTime
 
   // Générer la suite de Fibonacci
   const generateFibonacci = (n) => {
@@ -39,14 +51,14 @@ const FibonacciClock = () => {
     return result.reverse()
   }
 
-  // Mettre à jour l'heure
+  // Mettre à jour l'heure (temps réel uniquement)
   useEffect(() => {
+    if (timeMode !== 'realtime') return
     const timer = setInterval(() => {
       setCurrentTime(new Date())
     }, 1000)
-
     return () => clearInterval(timer)
-  }, [])
+  }, [timeMode])
 
   // Générer les valeurs Fibonacci
   useEffect(() => {
@@ -55,16 +67,16 @@ const FibonacciClock = () => {
 
   // Calculer les plaques actives
   useEffect(() => {
-    const hours = is24Hour ? currentTime.getHours() : currentTime.getHours() % 12 || 12
-    const minutes = currentTime.getMinutes()
-    const seconds = currentTime.getSeconds()
+    const hours = is24Hour ? displayTime.getHours() : displayTime.getHours() % 12 || 12
+    const minutes = displayTime.getMinutes()
+    const seconds = displayTime.getSeconds()
 
     setActivePlates({
       hours: toZeckendorf(hours),
       minutes: toZeckendorf(minutes),
       seconds: showSeconds ? toZeckendorf(seconds) : []
     })
-  }, [currentTime, fibonacciValues, is24Hour, showSeconds])
+  }, [displayTime, fibonacciValues, is24Hour, showSeconds])
 
   // Obtenir la couleur d'une plaque
   const getPlateColor = (value, type) => {
@@ -90,9 +102,9 @@ const FibonacciClock = () => {
 
   // Formatage de l'heure traditionnelle
   const formatTraditionalTime = () => {
-    const hours = is24Hour ? currentTime.getHours() : currentTime.getHours() % 12 || 12
-    const minutes = currentTime.getMinutes()
-    const seconds = currentTime.getSeconds()
+    const hours = is24Hour ? displayTime.getHours() : displayTime.getHours() % 12 || 12
+    const minutes = displayTime.getMinutes()
+    const seconds = displayTime.getSeconds()
 
     const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
     const secondsString = showSeconds ? `:${seconds.toString().padStart(2, '0')}` : ''
@@ -107,9 +119,9 @@ const FibonacciClock = () => {
 
   // Vérifier si l'affichage est correct
   const isDisplayCorrect = () => {
-    const hours = is24Hour ? currentTime.getHours() : currentTime.getHours() % 12 || 12
-    const minutes = currentTime.getMinutes()
-    const seconds = currentTime.getSeconds()
+    const hours = is24Hour ? displayTime.getHours() : displayTime.getHours() % 12 || 12
+    const minutes = displayTime.getMinutes()
+    const seconds = displayTime.getSeconds()
 
     return calculateSum('hours') === hours &&
            calculateSum('minutes') === minutes &&
@@ -132,6 +144,57 @@ const FibonacciClock = () => {
       {/* Controls */}
       <div className="fibonacci-card p-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          {/* Temps réel ou simulation */}
+          <div>
+            <label className="block text-sm font-medium text-white/80 mb-2">
+              Mode temps
+            </label>
+            <select
+              value={timeMode}
+              onChange={(e) => setTimeMode(e.target.value)}
+              className="w-full p-3 bg-white/10 border border-white/20 rounded-lg text-white"
+            >
+              <option value="realtime">Temps réel</option>
+              <option value="simulation">Simulation (heure manuelle)</option>
+            </select>
+          </div>
+          {timeMode === 'simulation' && (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-white/80 mb-2">Heures</label>
+                <input
+                  type="number"
+                  min={0}
+                  max={is24Hour ? 23 : 12}
+                  value={simulationHours}
+                  onChange={(e) => setSimulationHours(parseInt(e.target.value, 10) || 0)}
+                  className="w-full p-3 bg-white/10 border border-white/20 rounded-lg text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-white/80 mb-2">Minutes</label>
+                <input
+                  type="number"
+                  min={0}
+                  max={59}
+                  value={simulationMinutes}
+                  onChange={(e) => setSimulationMinutes(parseInt(e.target.value, 10) || 0)}
+                  className="w-full p-3 bg-white/10 border border-white/20 rounded-lg text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-white/80 mb-2">Secondes</label>
+                <input
+                  type="number"
+                  min={0}
+                  max={59}
+                  value={simulationSeconds}
+                  onChange={(e) => setSimulationSeconds(parseInt(e.target.value, 10) || 0)}
+                  className="w-full p-3 bg-white/10 border border-white/20 rounded-lg text-white"
+                />
+              </div>
+            </>
+          )}
           {/* Mode d'affichage */}
           <div>
             <label className="block text-sm font-medium text-white/80 mb-2">
