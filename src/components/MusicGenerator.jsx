@@ -8,6 +8,54 @@ import {
   generateFibonacciScale
 } from '../utils/fibonacciMusic.js'
 
+// Encode AudioBuffer to WAV blob
+function audioBufferToWav(buffer) {
+  const numChannels = buffer.numberOfChannels
+  const sampleRate = buffer.sampleRate
+  const format = 1
+  const bitDepth = 16
+  const bytesPerSample = bitDepth / 8
+  const blockAlign = numChannels * bytesPerSample
+  const dataLength = buffer.length * numChannels * bytesPerSample
+  const bufferLength = 44 + dataLength
+  const arrayBuffer = new ArrayBuffer(bufferLength)
+  const view = new DataView(arrayBuffer)
+  const channels = []
+  for (let c = 0; c < numChannels; c++) {
+    channels.push(buffer.getChannelData(c))
+  }
+
+  const writeString = (offset, str) => {
+    for (let i = 0; i < str.length; i++) {
+      view.setUint8(offset + i, str.charCodeAt(i))
+    }
+  }
+  writeString(0, 'RIFF')
+  view.setUint32(4, 36 + dataLength, true)
+  writeString(8, 'WAVE')
+  writeString(12, 'fmt ')
+  view.setUint32(16, 16, true)
+  view.setUint16(20, format, true)
+  view.setUint16(22, numChannels, true)
+  view.setUint32(24, sampleRate, true)
+  view.setUint32(28, sampleRate * blockAlign, true)
+  view.setUint16(32, blockAlign, true)
+  view.setUint16(34, bitDepth, true)
+  writeString(36, 'data')
+  view.setUint32(40, dataLength, true)
+
+  let offset = 44
+  for (let i = 0; i < buffer.length; i++) {
+    for (let c = 0; c < numChannels; c++) {
+      const sample = Math.max(-1, Math.min(1, channels[c][i]))
+      const intSample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF
+      view.setInt16(offset, intSample, true)
+      offset += 2
+    }
+  }
+  return new Blob([arrayBuffer], { type: 'audio/wav' })
+}
+
 const MusicGenerator = ({ count }) => {
   const [isPlaying, setIsPlaying] = useState(false)
   const [isLoaded, setIsLoaded] = useState(false)
@@ -16,6 +64,7 @@ const MusicGenerator = ({ count }) => {
   const [instrument, setInstrument] = useState('piano')
   const [currentNote, setCurrentNote] = useState(null)
   const [composition, setComposition] = useState(null)
+  const [exporting, setExporting] = useState(false)
 
   const synthRef = useRef(null)
   const sequenceRef = useRef(null)
@@ -169,6 +218,70 @@ const MusicGenerator = ({ count }) => {
     synthRef.current.triggerAttackRelease(frequency, '8n')
   }
 
+  const exportWav = async () => {
+    if (!composition || exporting) return
+    setExporting(true)
+    try {
+      const duration = Math.max(
+        composition.melody.length * 0.5,
+        composition.chords.length * 1
+      ) + 2
+
+      const toneBuffer = await Tone.Offline(async (context) => {
+        const synth = new Tone.PolySynth(Tone.Synth, {
+          oscillator: { type: 'triangle' },
+          envelope: { attack: 0.02, decay: 0.1, sustain: 0.3, release: 1.2 }
+        }).toDestination()
+
+        context.transport.bpm.value = tempo
+
+        const melodyPart = new Tone.Part((time, note) => {
+          synth.triggerAttackRelease(
+            `${note.note}${note.octave}`,
+            note.duration,
+            time,
+            note.velocity
+          )
+        }, composition.melody.map((note, index) => ({
+          time: index * 0.5,
+          ...note
+        })))
+
+        const chordPart = new Tone.Part((time, chord) => {
+          chord.notes.forEach((note, idx) => {
+            synth.triggerAttackRelease(
+              `${note}4`,
+              chord.duration,
+              time - idx * 0.1,
+              0.5
+            )
+          })
+        }, composition.chords.map((chord, index) => ({
+          time: index * 1,
+          ...chord
+        })))
+
+        melodyPart.start(0)
+        chordPart.start(0)
+        context.transport.start(0)
+      }, duration, 1, 44100)
+
+      const audioBuffer = toneBuffer.get()
+      if (!audioBuffer) throw new Error('Rendu audio échoué')
+      const blob = audioBufferToWav(audioBuffer)
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `fibonacci-composition-${key}-${tempo}bpm.wav`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error('Export WAV:', err)
+    } finally {
+      setExporting(false)
+    }
+  }
+
   const keys = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
   const instruments = [
     { value: 'piano', label: 'Piano', icon: '🎹' },
@@ -239,11 +352,11 @@ const MusicGenerator = ({ count }) => {
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-fibonacci-gold mb-4">Contrôles</h3>
 
-            <div className="flex gap-4">
+            <div className="flex flex-wrap gap-4">
               <motion.button
                 onClick={isPlaying ? stopComposition : playComposition}
                 disabled={!isLoaded || !composition}
-                className={`fibonacci-button flex-1 ${!isLoaded ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`fibonacci-button flex-1 min-w-[140px] ${!isLoaded ? 'opacity-50 cursor-not-allowed' : ''}`}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -266,6 +379,18 @@ const MusicGenerator = ({ count }) => {
                   </>
                 )}
               </motion.button>
+              <motion.button
+                onClick={exportWav}
+                disabled={!composition || exporting}
+                className="px-4 py-2 rounded-lg font-semibold bg-white/10 text-white border border-white/20 hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                {exporting ? '⏳ Export...' : '📥 Télécharger WAV'}
+              </motion.button>
+              <p className="text-white/50 text-xs mt-1">
+                Export audio WAV. Convertible en MP3 avec un outil externe (Audacity, etc.).
+              </p>
             </div>
 
             {currentNote && (
