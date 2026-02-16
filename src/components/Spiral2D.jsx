@@ -8,6 +8,19 @@ const Spiral2D = ({ count }) => {
   const [showRectangles, setShowRectangles] = useState(true)
   const [showSpiral, setShowSpiral] = useState(true)
   const [showGrid, setShowGrid] = useState(false)
+  const [zoom, setZoom] = useState(1)
+  const [progressiveMode, setProgressiveMode] = useState(false)
+  const [progressiveStep, setProgressiveStep] = useState(1)
+  const [progressivePlaying, setProgressivePlaying] = useState(false)
+  const maxProgressiveSteps = Math.min(count, 12)
+
+  useEffect(() => {
+    if (!progressivePlaying || !progressiveMode) return
+    const t = setInterval(() => {
+      setProgressiveStep((s) => (s >= maxProgressiveSteps ? 1 : s + 1))
+    }, 800 / animationSpeed)
+    return () => clearInterval(t)
+  }, [progressivePlaying, progressiveMode, animationSpeed, maxProgressiveSteps])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -25,12 +38,14 @@ const Spiral2D = ({ count }) => {
 
     const centerX = rect.width / 2
     const centerY = rect.height / 2
-    const scale = Math.min(rect.width, rect.height) / 8
+    const baseScale = Math.min(rect.width, rect.height) / 8
+    const scale = baseScale * zoom
 
     // Clear canvas
     ctx.clearRect(0, 0, rect.width, rect.height)
 
     const sequence = generateFibonacciSequence(count)
+    const limit = progressiveMode ? progressiveStep : null
 
     // Draw grid if enabled
     if (showGrid) {
@@ -39,18 +54,18 @@ const Spiral2D = ({ count }) => {
 
     // Draw golden rectangles
     if (showRectangles) {
-      drawGoldenRectangles(ctx, centerX, centerY, scale)
+      drawGoldenRectangles(ctx, centerX, centerY, scale, limit)
     }
 
     // Draw spiral
     if (showSpiral) {
-      drawGoldenSpiral(ctx, centerX, centerY, scale)
+      drawGoldenSpiral(ctx, centerX, centerY, scale, sequence, limit)
     }
 
     // Draw sequence numbers
-    drawSequenceNumbers(ctx, centerX, centerY, scale, sequence)
+    drawSequenceNumbers(ctx, centerX, centerY, scale, sequence, limit)
 
-  }, [count, animationSpeed, showRectangles, showSpiral, showGrid])
+  }, [count, animationSpeed, showRectangles, showSpiral, showGrid, zoom, progressiveMode, progressiveStep])
 
   const drawGrid = (ctx, width, height, centerX, centerY) => {
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)'
@@ -83,8 +98,9 @@ const Spiral2D = ({ count }) => {
     ctx.stroke()
   }
 
-  const drawGoldenRectangles = (ctx, centerX, centerY, scale) => {
-    const rectangles = goldenRectangleSpiral(Math.min(count, 12)) // Limit for visibility
+  const drawGoldenRectangles = (ctx, centerX, centerY, scale, limit = null) => {
+    const maxN = limit != null ? limit : Math.min(count, 12)
+    const rectangles = goldenRectangleSpiral(maxN)
 
     rectangles.forEach((rect, index) => {
       const alpha = 0.3 + (index / rectangles.length) * 0.4
@@ -101,7 +117,9 @@ const Spiral2D = ({ count }) => {
     })
   }
 
-  const drawGoldenSpiral = (ctx, centerX, centerY, scale) => {
+  const drawGoldenSpiral = (ctx, centerX, centerY, scale, sequence, limit = null) => {
+    const maxTerms = limit != null ? Math.min(limit, 10) : Math.min(count, 10)
+    const seq = sequence.slice(0, maxTerms)
     ctx.strokeStyle = '#FFD700'
     ctx.lineWidth = 3
     ctx.beginPath()
@@ -109,9 +127,10 @@ const Spiral2D = ({ count }) => {
     const maxT = Math.PI * 4
     const steps = 200
     let firstPoint = true
+    const tMax = seq.length > 1 ? (seq.length / Math.max(1, count)) * maxT : maxT
 
     for (let i = 0; i <= steps; i++) {
-      const t = (i / steps) * maxT
+      const t = (i / steps) * tMax
       const coords = goldenSpiralCoordinates(t, maxT, scale / 20)
 
       const x = centerX + coords.x
@@ -128,19 +147,15 @@ const Spiral2D = ({ count }) => {
     ctx.stroke()
 
     // Draw spiral points with Fibonacci numbers
-    const sequence = generateFibonacciSequence(Math.min(count, 10))
-    sequence.forEach((fibNum, index) => {
-      if (index === 0) {
-        return
-      }
+    seq.forEach((fibNum, index) => {
+      if (index === 0) return
 
-      const t = (index / sequence.length) * maxT
+      const t = (index / Math.max(1, seq.length)) * maxT
       const coords = goldenSpiralCoordinates(t, maxT, scale / 20)
 
       const x = centerX + coords.x
       const y = centerY + coords.y
 
-      // Draw circle
       ctx.fillStyle = '#FFD700'
       ctx.strokeStyle = '#000'
       ctx.lineWidth = 2
@@ -149,7 +164,6 @@ const Spiral2D = ({ count }) => {
       ctx.fill()
       ctx.stroke()
 
-      // Draw number
       ctx.fillStyle = '#000'
       ctx.font = 'bold 10px Arial'
       ctx.textAlign = 'center'
@@ -158,10 +172,10 @@ const Spiral2D = ({ count }) => {
     })
   }
 
-  const drawSequenceNumbers = (ctx, centerX, centerY, scale, sequence) => {
-    // Draw Fibonacci sequence as a pattern
-    sequence.slice(0, 8).forEach((num, index) => {
-      const angle = (index / sequence.slice(0, 8).length) * 2 * Math.PI
+  const drawSequenceNumbers = (ctx, centerX, centerY, scale, sequence, limit = null) => {
+    const slice = limit != null ? sequence.slice(0, Math.min(limit, 8)) : sequence.slice(0, 8)
+    slice.forEach((num, index) => {
+      const angle = (index / Math.max(1, slice.length)) * 2 * Math.PI
       const radius = 100 + index * 20
 
       const x = centerX + Math.cos(angle) * radius
@@ -212,18 +226,75 @@ const Spiral2D = ({ count }) => {
             </label>
           </div>
 
-          <div className="flex items-center gap-2">
-            <label className="text-white/80 text-sm">Vitesse:</label>
-            <input
-              type="range"
-              min="0.1"
-              max="3"
-              step="0.1"
-              value={animationSpeed}
-              onChange={(e) => setAnimationSpeed(parseFloat(e.target.value))}
-              className="w-20"
-            />
-            <span className="text-fibonacci-gold text-sm font-mono">{animationSpeed.toFixed(1)}x</span>
+          <div className="flex flex-wrap items-center gap-6">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={progressiveMode}
+                onChange={(e) => {
+                  setProgressiveMode(e.target.checked)
+                  if (!e.target.checked) setProgressivePlaying(false)
+                }}
+                className="w-4 h-4 text-fibonacci-gold"
+              />
+              <span className="text-white">Animation progressive</span>
+            </label>
+            {progressiveMode && (
+              <>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setProgressivePlaying((p) => !p)}
+                    className="px-3 py-1 rounded bg-fibonacci-gold text-black text-sm font-medium"
+                  >
+                    {progressivePlaying ? '⏸ Pause' : '▶ Lecture'}
+                  </button>
+                  <span className="text-white/80 text-sm">
+                    Étape {progressiveStep} / {maxProgressiveSteps}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="range"
+                    min="1"
+                    max={maxProgressiveSteps}
+                    value={progressiveStep}
+                    onChange={(e) => setProgressiveStep(parseInt(e.target.value, 10))}
+                    className="w-24"
+                  />
+                </div>
+              </>
+            )}
+            <div className="flex items-center gap-2">
+              <label className="text-white/80 text-sm">Vitesse:</label>
+              <input
+                type="range"
+                min="0.1"
+                max="3"
+                step="0.1"
+                value={animationSpeed}
+                onChange={(e) => setAnimationSpeed(parseFloat(e.target.value))}
+                className="w-24"
+              />
+              <span className="text-fibonacci-gold text-sm font-mono">
+                {animationSpeed.toFixed(1)}x
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-white/80 text-sm">Zoom:</label>
+              <input
+                type="range"
+                min="0.5"
+                max="3"
+                step="0.1"
+                value={zoom}
+                onChange={(e) => setZoom(parseFloat(e.target.value))}
+                className="w-24"
+              />
+              <span className="text-fibonacci-gold text-sm font-mono">
+                {zoom.toFixed(1)}x
+              </span>
+            </div>
           </div>
         </div>
       </div>
