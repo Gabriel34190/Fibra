@@ -12,8 +12,12 @@ const FibonacciTrader = () => {
   const [showRetracements, setShowRetracements] = useState(true)
   const [showExtensions, setShowExtensions] = useState(false)
   const [tradingSignals, setTradingSignals] = useState([])
+  const [backtestResult, setBacktestResult] = useState(null)
+  const [runningBacktest, setRunningBacktest] = useState(false)
   const canvasRef = useRef(null)
   const animationRef = useRef(null)
+  const simulationTimeoutRef = useRef(null)
+  const isSimulatingRef = useRef(false)
 
   // Niveaux de retracement Fibonacci
   const RETRACEMENT_LEVELS = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1]
@@ -117,6 +121,79 @@ const FibonacciTrader = () => {
     return signals
   }
 
+  // Backtest : stratégie d'achat au support 0.618, vente au resistance ou +2%
+  const runBacktest = () => {
+    if (priceData.length < 10 || fibonacciLevels.length === 0) {
+      setBacktestResult(null)
+      return
+    }
+    setRunningBacktest(true)
+    setBacktestResult(null)
+    setTimeout(() => {
+      const levels = fibonacciLevels.filter(l => l.type === 'retracement')
+      const level618 = levels.find(l => Math.abs(l.level - 0.618) < 0.01)
+      const level382 = levels.find(l => Math.abs(l.level - 0.382) < 0.01)
+      const high = Math.max(...priceData.map(d => d.high))
+      const low = Math.min(...priceData.map(d => d.low))
+      const range = high - low
+      const support618 = level618 ? level618.price : high - range * 0.618
+      const resistance382 = level382 ? level382.price : high - range * 0.382
+
+      const trades = []
+      let position = null
+      const tolerance = range * 0.02
+
+      for (let i = 1; i < priceData.length; i++) {
+        const p = priceData[i].price
+        const prev = priceData[i - 1].price
+
+        if (position === null) {
+          if (prev >= support618 - tolerance && p < support618 + tolerance) {
+            position = { entryPrice: p, entryTime: i, type: 'long' }
+          }
+        } else {
+          const target = position.entryPrice * 1.02
+          const stop = position.entryPrice * 0.99
+          if (p >= target || p >= resistance382 - tolerance || p <= stop) {
+            const exitPrice = p
+            const pnl = ((exitPrice - position.entryPrice) / position.entryPrice) * 100
+            trades.push({
+              entryTime: position.entryTime,
+              exitTime: i,
+              entryPrice: position.entryPrice,
+              exitPrice,
+              pnl: pnl.toFixed(2),
+              win: pnl > 0
+            })
+            position = null
+          }
+        }
+      }
+      if (position !== null) {
+        const exitPrice = priceData[priceData.length - 1].price
+        const pnl = ((exitPrice - position.entryPrice) / position.entryPrice) * 100
+        trades.push({
+          entryTime: position.entryTime,
+          exitTime: priceData.length - 1,
+          entryPrice: position.entryPrice,
+          exitPrice,
+          pnl: pnl.toFixed(2),
+          win: pnl > 0
+        })
+      }
+
+      const totalPnl = trades.reduce((sum, t) => sum + parseFloat(t.pnl), 0)
+      const wins = trades.filter(t => t.win).length
+      setBacktestResult({
+        trades,
+        totalPnl: totalPnl.toFixed(2),
+        totalTrades: trades.length,
+        winRate: trades.length ? ((wins / trades.length) * 100).toFixed(1) : 0
+      })
+      setRunningBacktest(false)
+    }, 200)
+  }
+
   // Calculer la force du signal
   const calculateSignalStrength = (point, recentData) => {
     if (recentData.length < 3) {
@@ -158,7 +235,8 @@ const FibonacciTrader = () => {
 
     const minPrice = Math.min(...priceData.map(d => d.low))
     const maxPrice = Math.max(...priceData.map(d => d.high))
-    const priceRange = maxPrice - minPrice
+    const priceRange = Math.max(maxPrice - minPrice, 1e-6)
+    const timeRange = Math.max(priceData.length - 1, 1)
 
     // Dessiner les niveaux Fibonacci
     fibonacciLevels.forEach(level => {
@@ -185,7 +263,7 @@ const FibonacciTrader = () => {
     ctx.beginPath()
 
     priceData.forEach((point, index) => {
-      const x = padding + (index / (priceData.length - 1)) * chartWidth
+      const x = padding + (index / timeRange) * chartWidth
       const y = padding + chartHeight - ((point.price - minPrice) / priceRange) * chartHeight
 
       if (index === 0) {
@@ -197,10 +275,14 @@ const FibonacciTrader = () => {
 
     ctx.stroke()
 
-    // Dessiner les signaux
+    // Dessiner les signaux (un seul par index de temps pour éviter les points superposés sur les niveaux)
+    const seenTime = new Set()
     tradingSignals.forEach(signal => {
-      const x = padding + (signal.time / (priceData.length - 1)) * chartWidth
+      const x = padding + (signal.time / timeRange) * chartWidth
       const y = padding + chartHeight - ((signal.price - minPrice) / priceRange) * chartHeight
+
+      if (seenTime.has(signal.time)) return
+      seenTime.add(signal.time)
 
       ctx.fillStyle = signal.type === 'support' ? '#10b981' : '#ef4444'
       ctx.beginPath()
@@ -225,33 +307,36 @@ const FibonacciTrader = () => {
     ctx.fillText(minPrice.toFixed(2), padding - 10, height - padding + 5)
   }
 
-  // Simulation en temps réel
-  const simulateTrading = () => {
-    if (!isSimulating) {
-      return
+  // Refléter isSimulating dans une ref pour que le timeout voie la valeur à jour (pause)
+  useEffect(() => {
+    isSimulatingRef.current = isSimulating
+    if (!isSimulating && simulationTimeoutRef.current) {
+      clearTimeout(simulationTimeoutRef.current)
+      simulationTimeoutRef.current = null
     }
+  }, [isSimulating])
 
-    // Ajouter un nouveau point de prix
-    const lastPrice = priceData[priceData.length - 1]?.price || 100
-    const volatility = (Math.random() - 0.5) * 4
-    const trendFactor = trend === 'bullish' ? 0.1 : -0.1
-    const newPrice = lastPrice + volatility + trendFactor
+  // Simulation en temps réel (une seule mise à jour par tick, timeout annulable au Pause)
+  const runSimulationTick = () => {
+    if (!isSimulatingRef.current) return
 
-    const newPoint = {
-      time: priceData.length,
-      price: newPrice,
-      volume: Math.random() * 1000 + 100,
-      high: newPrice + Math.random() * 2,
-      low: newPrice - Math.random() * 2
-    }
+    setPriceData(prev => {
+      const lastPrice = prev[prev.length - 1]?.price || 100
+      const volatility = (Math.random() - 0.5) * 4
+      const trendFactor = trend === 'bullish' ? 0.1 : -0.1
+      const newPrice = Math.max(50, Math.min(200, lastPrice + volatility + trendFactor))
 
-    setPriceData(prev => [...prev.slice(-99), newPoint]) // Garder seulement les 100 derniers points
-    setCurrentPrice(newPrice)
+      const newPoint = {
+        time: prev.length,
+        price: newPrice,
+        volume: Math.random() * 1000 + 100,
+        high: newPrice + Math.random() * 2,
+        low: newPrice - Math.random() * 2
+      }
+      return [...prev.slice(-99), newPoint]
+    })
 
-    // Programmer la prochaine mise à jour
-    setTimeout(() => {
-      simulateTrading()
-    }, 1000 / simulationSpeed)
+    simulationTimeoutRef.current = setTimeout(runSimulationTick, 1000 / simulationSpeed)
   }
 
   // Effets
@@ -269,14 +354,26 @@ const FibonacciTrader = () => {
   }, [priceData, showRetracements, showExtensions])
 
   useEffect(() => {
+    if (priceData.length > 0) {
+      setCurrentPrice(priceData[priceData.length - 1].price)
+    }
+  }, [priceData])
+
+  useEffect(() => {
     drawChart()
   }, [priceData, fibonacciLevels, tradingSignals])
 
   useEffect(() => {
-    if (isSimulating) {
-      simulateTrading()
+    if (!isSimulating) return
+    isSimulatingRef.current = true
+    runSimulationTick()
+    return () => {
+      if (simulationTimeoutRef.current) {
+        clearTimeout(simulationTimeoutRef.current)
+        simulationTimeoutRef.current = null
+      }
     }
-  }, [isSimulating, simulationSpeed])
+  }, [isSimulating, simulationSpeed, trend])
 
   // Redimensionner le canvas
   useEffect(() => {
@@ -416,7 +513,71 @@ const FibonacciTrader = () => {
             </div>
           </div>
         </div>
+
+        <div className="mt-4 pt-4 border-t border-white/10">
+          <motion.button
+            onClick={runBacktest}
+            disabled={runningBacktest || priceData.length < 10}
+            className={`px-4 py-2 rounded-lg font-semibold ${
+              runningBacktest || priceData.length < 10
+                ? 'bg-white/10 text-white/50 cursor-not-allowed'
+                : 'bg-fibonacci-gold text-black hover:bg-yellow-400'
+            }`}
+            whileHover={{ scale: priceData.length >= 10 && !runningBacktest ? 1.02 : 1 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            {runningBacktest ? '⏳ Backtest en cours...' : '📊 Lancer le backtest'}
+          </motion.button>
+        </div>
       </div>
+
+      {/* Résultat du backtest */}
+      {backtestResult && (
+        <div className="fibonacci-card p-6">
+          <h3 className="text-xl font-semibold text-fibonacci-gold mb-4">📊 Résultat du backtest</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+            <div className="p-4 bg-white/5 rounded-lg text-center">
+              <div className="text-2xl font-bold text-white">{backtestResult.totalTrades}</div>
+              <div className="text-white/60 text-sm">Trades</div>
+            </div>
+            <div className="p-4 bg-white/5 rounded-lg text-center">
+              <div className={`text-2xl font-bold ${parseFloat(backtestResult.totalPnl) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                {backtestResult.totalPnl}%
+              </div>
+              <div className="text-white/60 text-sm">P&L total</div>
+            </div>
+            <div className="p-4 bg-white/5 rounded-lg text-center">
+              <div className="text-2xl font-bold text-blue-400">{backtestResult.winRate}%</div>
+              <div className="text-white/60 text-sm">Taux de réussite</div>
+            </div>
+            <div className="p-4 bg-white/5 rounded-lg text-center">
+              <div className="text-2xl font-bold text-white">
+                {backtestResult.trades.filter(t => t.win).length} / {backtestResult.totalTrades}
+              </div>
+              <div className="text-white/60 text-sm">Gagnants</div>
+            </div>
+          </div>
+          <h4 className="text-white font-medium mb-2">Détail des trades</h4>
+          <div className="max-h-48 overflow-y-auto space-y-2">
+            {backtestResult.trades.slice(0, 15).map((t, i) => (
+              <div
+                key={i}
+                className="flex justify-between items-center p-2 bg-white/5 rounded text-sm"
+              >
+                <span className="text-white/80">
+                  Entrée #{t.entryTime} @ {t.entryPrice.toFixed(2)} → Sortie @ {t.exitPrice.toFixed(2)}
+                </span>
+                <span className={t.win ? 'text-green-400' : 'text-red-400'}>
+                  {t.pnl}%
+                </span>
+              </div>
+            ))}
+            {backtestResult.trades.length > 15 && (
+              <div className="text-center text-white/60 text-sm">... et {backtestResult.trades.length - 15} autres</div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Graphique */}
       <div className="fibonacci-card p-6">
