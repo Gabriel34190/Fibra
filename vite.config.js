@@ -34,7 +34,19 @@ export default defineConfig({
     chunkSizeWarningLimit: 600
   },
   optimizeDeps: {
-    include: ['react', 'react-dom', 'framer-motion', 'recharts', 'scheduler'],
-    exclude: ['three', 'tone', '@react-three/fiber', '@react-three/drei']
+    include: [
+      'react',
+      'react-dom',
+      'react-reconciler',
+      'framer-motion',
+      'recharts',
+      'scheduler',
+      '@react-three/fiber',
+      '@react-three/drei',
+      'three'
+    ],
+    esbuildOptions: {
+      mainFields: ['module', 'main']
+    }
   }
 })

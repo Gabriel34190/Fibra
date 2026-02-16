@@ -8,10 +8,10 @@ import AlgorithmViewer from './components/AlgorithmViewer'
 import FibonacciDetector from './components/FibonacciDetector'
 import FibonacciSearchVisualizer from './components/FibonacciSearchVisualizer'
 import FibonacciClock from './components/FibonacciClock'
+import Spiral3D from './components/Spiral3D'
 import './App.css'
 
 // Lazy load heavy components
-const Spiral3D = lazy(() => import('./components/Spiral3D'))
 const MusicGenerator = lazy(() => import('./components/MusicGenerator'))
 const FibonacciCodingExplorer = lazy(() => import('./components/FibonacciCodingExplorer'))
 const FibonacciFractalGenerator = lazy(() => import('./components/FibonacciFractalGenerator'))
